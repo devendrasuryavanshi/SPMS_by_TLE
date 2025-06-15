@@ -1,1 +1,1 @@
-# SPMS .
+SPMS - Student Progress Management System

@@ -1,0 +1,27 @@
+{
+  "name": "spms",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/dist/index.js",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build:server": "cd server && npm run build",
+    "build:client": "cd client && npm run build",
+    "build": "npm run build:server && npm run build:client",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devendrasuryavanshi/SPMS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/devendrasuryavanshi/SPMS/issues"
+  },
+  "homepage": "https://github.com/devendrasuryavanshi/SPMS#readme",
+  "description": ""
+}
