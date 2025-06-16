@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
     {
       name: "Email",
       icon: <Mail className="w-4 h-4 sm:w-5 sm:h-5" />,
-      url: "mailto:contact@spms.edu"
+      url: "mailto:devendrasooryavanshee@gmail.com"
     }
   ];
 

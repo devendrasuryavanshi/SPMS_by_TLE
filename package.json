@@ -23,5 +23,8 @@
     "url": "https://github.com/devendrasuryavanshi/SPMS/issues"
   },
   "homepage": "https://github.com/devendrasuryavanshi/SPMS#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
 }

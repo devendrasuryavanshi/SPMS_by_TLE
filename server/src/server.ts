@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { keepAlive } from './utils/keepAlive';
 import authRoutes from './routes/auth.routes';
+import studentRoutes from './routes/student.routes';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -18,7 +19,7 @@ app.use(cookieParser());
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -33,6 +34,7 @@ app.get('/', (req: Request, res: Response) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/students', studentRoutes);
 
 mongoose.connect(MONGODB_URI).then(() => {
   console.log('Connected to MongoDB');

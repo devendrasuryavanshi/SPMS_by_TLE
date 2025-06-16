@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -19,44 +19,14 @@ import { GraduationCap, LogOut, Settings } from "lucide-react";
 import { ThemeSwitcher } from "../ThemeSwitcher/ThemeSwitcher";
 import { useAuth } from "../../context/AuthContext";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { API_URL } from "../../config";
 
 const NavbarComponent = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUserEmail = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const url = `${API_URL}/auth/me`;
-
-        if (token) {
-          const response = await axios.get(url, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (response.status === 200 && response.data.user) {
-            setCurrentUserEmail(response.data.user.email);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      }
-    };
-
-    if (isAuthenticated) {
-      fetchUserEmail();
-    }
-  }, [isAuthenticated]);
 
   const menuItems = [
     { name: "Student Profiles", href: "/students", icon: <GraduationCap size={18} /> },
-    ...(currentUserEmail === "admin@spms.com" ? [
+    ...(user?.email === "admin@spms.com" ? [
       { name: "System Management", href: "/settings", icon: <Settings size={18} /> }
     ] : [])
   ];
@@ -157,8 +127,8 @@ const NavbarComponent = () => {
             <Link
               href={item.href}
               className={`flex items-center gap-3 w-full py-2 text-lg ${isActive(item.href)
-                  ? "text-primary dark:text-primary-dark font-medium"
-                  : "text-secondary dark:text-secondary-dark"
+                ? "text-primary dark:text-primary-dark font-medium"
+                : "text-secondary dark:text-secondary-dark"
                 }`}
               onClick={() => setIsMenuOpen(false)}
             >

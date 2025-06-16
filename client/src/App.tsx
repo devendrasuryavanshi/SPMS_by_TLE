@@ -6,7 +6,8 @@ import Footer from './components/global/Footer';
 import Home from './pages/Home';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import NotFound from './pages/NotFound';
-import Login from './components/auth/Login';
+import Login from './components/auth/Signin';
+import Students from './pages/Students';
 
 const App: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
 
               <Route element={<ProtectedRoute />}>
+                <Route path="/students" element={<Students />} />
               </Route>
 
               {/* 404 route */}
