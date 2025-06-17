@@ -1,3 +1,4 @@
+import axios from "axios";
 import { CodeforcesUser } from "../types/types";
 
 export const validateForm = (formData: any): string[] => {
@@ -24,8 +25,8 @@ export const validateForm = (formData: any): string[] => {
 
 export const fetchCodeforcesUser = async (handle: string): Promise<CodeforcesUser | null> => {
   try {
-    const response = await fetch(`https://codeforces.com/api/user.info?handles=${handle}`);
-    const data = await response.json();
+    const response = await axios.get(`https://codeforces.com/api/user.info?handles=${handle}`);
+    const data = await response.data;
     if (data.status === 'OK') {
       return data.result[0];
     } else {

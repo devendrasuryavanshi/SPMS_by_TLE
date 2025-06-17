@@ -12,7 +12,10 @@ export interface Student {
   rank: string;
   country: string;
   lastSubmissionTime: Date;
+  lastContestTime: Date;
   lastDataSync: Date;
+  syncStatus?: string;
+  lastInactivityEmailSent?: Date;
   inactivityEmailCount: number;
   autoEmailEnabled: boolean;
   createdAt: Date;

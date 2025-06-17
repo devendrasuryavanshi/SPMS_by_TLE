@@ -11,7 +11,10 @@ export interface IStudent extends Document {
   rank: string;
   country: string;
   lastSubmissionTime: Date;
+  lastContestTime: Date;
   lastDataSync: Date;
+  syncStatus: string;
+  lastInactivityEmailSent?: Date;
   inactivityEmailCount: number;
   autoEmailEnabled: boolean;
   createdAt: Date;
@@ -60,10 +63,21 @@ const StudentSchema: Schema = new Schema(
       type: Date,
       required: true
     },
+    lastContestTime: {
+      type: Date,
+      required: false,
+    },
     lastDataSync: {
       type: Date,
       required: true,
       default: Date.now
+    },
+    syncStatus: {
+      type: String,
+    },
+    lastInactivityEmailSent: {
+      type: Date,
+      required: false
     },
     inactivityEmailCount: {
       type: Number,

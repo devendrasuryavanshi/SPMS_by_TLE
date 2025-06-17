@@ -34,12 +34,12 @@ const generatePhoneNumber = (): string => {
   return `${countryCode} ${number}`;
 };
 
-const generateEmail = (handle: string, fullName: string): string => {
-  if (!fullName || fullName === 'Unknown') {
+const generateEmail = (handle: string, fulllName: string): string => {
+  if (!fulllName || fulllName === 'Unknown') {
     return `${handle}@gmail.com`;
   }
 
-  const nameParts = fullName.toLowerCase().split(' ');
+  const nameParts = fulllName.toLowerCase().split(' ');
   const firstName = nameParts[0] || handle;
   const lastName = nameParts[1] || '';
   const randomNum = Math.floor(Math.random() * 999) + 1;
@@ -47,107 +47,90 @@ const generateEmail = (handle: string, fullName: string): string => {
   return `${firstName}.${lastName}${randomNum}@gmail.com`;
 };
 
+const isValidUser = (user: ApiUser): boolean => {
+  return (
+    typeof user.fulllName === 'string' &&
+    user.fulllName !== 'Unknown' &&
+    !user.fulllName.toLowerCase().includes('undefined') &&
+    user.rating > 0 &&
+    user.totalSubmissions > 0
+  );
+};
+
 const seedStudents = async (): Promise<void> => {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/spms';
     await mongoose.connect(mongoUri);
-    console.log('Connected to MongoDB');
-    console.log('Fetching data from Codeforces API...');
+    console.log('✅ Connected to MongoDB');
+    console.log('📡 Fetching users from Codeforces API...');
+
     const response = await axios.get<ApiResponse>('https://codeforces-lite-dashboard.vercel.app/api/users/list', {
       headers: {
-        Cookie: 'authCode=0Ne885d6m4ejpBD81IT066Y2332XiE805i6r5dx1H4tjXTP005wKo08P734fBwdTZ274Y1DK86fWuHvUJJr180K079vetHJ8s2j3Q2GAadAa3x0BbKR33rnl2qk3A05JqfCQ3ZbSmKOzXB8E4HXaOO5gE638g2t6'
+        Cookie: `authCode=${process.env.AUTH_CODE}` || '',
       }
     });
 
-    if (!response.data.success) {
-      throw new Error('API request failed');
-    }
+    if (!response.data.success) throw new Error('API request failed');
 
-    console.log(`API returned ${response.data.totalUsers} users`);
+    const allUsers = response.data.users;
+    console.log(`⚙️ Received ${allUsers.length} users`);
 
-    // first 100 users
-    const apiUsers = response.data.users.slice(0, 100);
-    console.log(`🎯 Processing ${apiUsers.length} users...`);
+    // 💡 Filter the users based on criteria
+    const validUsers = allUsers.filter(isValidUser).slice(0, 100);
+    console.log(`✅ Selected ${validUsers.length} users with valid full names and ratings`);
 
-    // transform API data to match our schema
-    const students = apiUsers.map((user) => ({
-      name: user.fulllName && user.fulllName !== 'Unknown' ? user.fulllName : user.handle,
+    const students = validUsers.map((user) => ({
+      name: user.fulllName,
       avatarUrl: user.titlePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.handle}`,
-      email: user.email && user.email !== 'Unknown' ? user.email : generateEmail(user.handle, user.fulllName),
+      email: generateEmail(user.handle, user.fulllName),
       phoneNumber: generatePhoneNumber(),
       codeforcesHandle: user.handle,
-      rating: user.rating || 0,
-      maxRating: user.maxRating || user.rating || 0,
+      rating: user.rating,
+      maxRating: user.maxRating || user.rating,
       rank: user.rank || 'unrated',
       country: user.originalCountryName || user.country || 'Unknown',
       lastSubmissionTime: user.lastSubmissionDate ? new Date(user.lastSubmissionDate) : new Date(),
       lastDataSync: new Date(),
       inactivityEmailCount: 0,
       autoEmailEnabled: true,
-      createdAt: new Date(Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000), // random date in the past
+      createdAt: new Date(Date.now() - Math.floor(Math.random() * 365) * 24 * 60 * 60 * 1000),
       updatedAt: new Date()
     }));
 
+    // Inserting in batches
     const batchSize = 20;
     let insertedCount = 0;
 
-    console.log('Inserting students into database...');
+    console.log('📥 Inserting students into DB...');
 
     for (let i = 0; i < students.length; i += batchSize) {
       const batch = students.slice(i, i + batchSize);
       try {
         const result = await Student.insertMany(batch, { ordered: false });
         insertedCount += result.length;
-        console.log(`📦 Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(students.length / batchSize)} (${result.length} students)`);
+        console.log(`🧩 Batch ${i / batchSize + 1}: Inserted ${result.length}`);
       } catch (error: any) {
         if (error.code === 11000) {
           const successfulInserts = error.result?.result?.insertedIds ? Object.keys(error.result.result.insertedIds).length : 0;
           insertedCount += successfulInserts;
-          console.log(`Batch ${Math.floor(i / batchSize) + 1}: ${successfulInserts} inserted, some duplicates skipped`);
+          console.log(`⚠️ Duplicates skipped, ${successfulInserts} inserted in batch`);
         } else {
           throw error;
         }
       }
     }
 
-    console.log(`Successfully seeded ${insertedCount} students from API!`);
-
-    const totalStudents = await Student.countDocuments();
-    const activeStudents = await Student.countDocuments({ isActive: true });
-    const avgRatingResult = await Student.aggregate([
-      { $group: { _id: null, avgRating: { $avg: '$currentRating' } } }
-    ]);
-
-    const rankDistribution = await Student.aggregate([
-      { $group: { _id: '$rank', count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
-    ]);
-
-    console.log('Database Statistics:');
-    console.log('========================');
-    console.log(`Total Students: ${totalStudents}`);
-    console.log(`Active Students: ${activeStudents} (${Math.round((activeStudents / totalStudents) * 100)}%)`);
-    console.log(`Inactive Students: ${totalStudents - activeStudents} (${Math.round(((totalStudents - activeStudents) / totalStudents) * 100)}%)`);
-    console.log(`Average Rating: ${Math.round(avgRatingResult[0]?.avgRating || 0)}`);
-
-    console.log('Rank Distribution:');
-    rankDistribution.forEach((rank: any) => {
-      console.log(`  ${rank._id}: ${rank.count} students`);
-    });
-
-    console.log('Sample Countries:');
-    const countries = await Student.distinct('country');
-    console.log(`Found students from: ${countries.slice(0, 10).join(', ')}${countries.length > 10 ? '...' : ''}`);
+    console.log(`🎉 Done! Seeded ${insertedCount} valid students.`);
 
   } catch (error) {
-    console.error('Error seeding students:', error);
+    console.error('❌ Seeding error:', error);
     if (axios.isAxiosError(error)) {
-      console.error('API Error Details:', error.response?.data || error.message);
+      console.error('⚠️ API Error Details:', error.response?.data || error.message);
     }
     process.exit(1);
   } finally {
     await mongoose.connection.close();
-    console.log('Database connection closed');
+    console.log('🔒 Closed MongoDB connection');
     process.exit(0);
   }
 };

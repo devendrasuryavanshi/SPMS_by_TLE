@@ -1,14 +1,16 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-interface ISubmission extends Document {
+export interface ISubmission extends Document {
   studentId: mongoose.Types.ObjectId;
   submissionId: number;
-  problemId: number;
+  problemId: string;
+  problemIndex: string;
   problemName: string;
   problemRating: number;
   verdict: string;
   submissionTime: Date;
   solved: boolean;
+  tags: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,10 +25,13 @@ const SubmissionSchema: Schema = new Schema(
     submissionId: {
       type: Number,
       required: true,
-      unique: true,
     },
     problemId: {
-      type: Number,
+      type: String,
+      required: true,
+    },
+    problemIndex: {
+      type: String,
       required: true,
     },
     problemName: {
@@ -48,6 +53,18 @@ const SubmissionSchema: Schema = new Schema(
     solved: {
       type: Boolean,
       required: true,
+    },
+    tags: {
+      type: [String],
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   {

@@ -2,10 +2,13 @@ import express, { Express, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { keepAlive } from './utils/keepAlive';
+import { keepAlive } from './utils/keepAlive.utils';
 import authRoutes from './routes/auth.routes';
 import studentRoutes from './routes/student.routes';
+import syncRoutes from './routes/sync.routes';
 import dotenv from 'dotenv';
+import logger from './utils/logger.utils';
+import CronScheduler from './services/cronSchedule.service';
 
 dotenv.config();
 
@@ -35,13 +38,27 @@ app.get('/', (req: Request, res: Response) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/sync', syncRoutes);
 
-mongoose.connect(MONGODB_URI).then(() => {
-  console.log('Connected to MongoDB');
+mongoose.connect(MONGODB_URI).then(async () => {
+  logger.info('Connected to MongoDB');
+
+  // Initialize cron scheduler
+  await CronScheduler.initializeScheduler();
 
   app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+    logger.info(`Server running at http://localhost:${port}`);
   });
 }).catch((error) => {
-  console.error('Failed to connect to MongoDB:', error);
+  logger.error('Failed to connect to MongoDB:', error);
+});
+
+process.on('SIGTERM', () => {
+  CronScheduler.stopScheduler();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  CronScheduler.stopScheduler();
+  process.exit(0);
 });

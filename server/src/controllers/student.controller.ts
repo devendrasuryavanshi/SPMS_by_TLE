@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Student, { IStudent } from '../models/student.model';
-import { CodeforcesUser } from '../types/types';
 import { fetchCodeforcesUser, validateForm } from '../utils/student.utils';
 
 

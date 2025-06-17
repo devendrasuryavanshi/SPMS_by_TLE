@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-interface IContestHistory extends Document {
+export interface IContestHistory extends Document {
   studentId: mongoose.Types.ObjectId;
   contestId: number;
   contestName: string;
@@ -9,6 +9,7 @@ interface IContestHistory extends Document {
   newRating: number;
   rank: number;
   contestTime: Date;
+  totalProblems: number;
   problemsUnsolvedCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -47,6 +48,10 @@ const ContestHistorySchema: Schema = new Schema(
     },
     contestTime: {
       type: Date,
+      required: true,
+    },
+    totalProblems: {
+      type: Number,
       required: true,
     },
     problemsUnsolvedCount: {
