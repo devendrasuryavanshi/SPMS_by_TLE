@@ -589,9 +589,9 @@ For support and questions:
 
 - **Email**: devendrasooryavanshee@gmail.com
 
-- **Documentation**: [https://github.com/devendrasuryavanshi/SPMS/blob/main/README.md](https://github.com/devendrasuryavanshi/SPMS/blob/main/README.md)
-- **Issues**: [GitHub Issues](https://github.com/devendrasuryavanshi/SPMS/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/devendrasuryavanshi/SPMS/discussions)
+- **Documentation**: [https://github.com/devendrasuryavanshi/SPMS_by_TLE/blob/main/README.md](https://github.com/devendrasuryavanshi/SPMS_by_TLE/blob/main/README.md)
+- **Issues**: [GitHub Issues](https://github.com/devendrasuryavanshi/SPMS_by_TLE/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/devendrasuryavanshi/SPMS_by_TLE/discussions)
 
 ## Acknowledgments
 
