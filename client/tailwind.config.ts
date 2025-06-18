@@ -41,7 +41,7 @@ const config = {
           DEFAULT: "#10B981", // Emerald Glow
           foreground: "#FFFFFF",
         },
-        background: "#F9FAFB", // Snow White
+        background: "#FDFDFD", // Snow White
         surface: "#FFFFFF", // Cloud White
         "text-primary": "#111827", // Onyx Black
         accent: {

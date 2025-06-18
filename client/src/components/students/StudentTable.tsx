@@ -1,5 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Student, StudentTableProps } from '../../types/student.types';
+import { getRankColor, getRatingColor } from '../../utils/student.utils';
 import {
   Table,
   TableHeader,
@@ -33,8 +35,6 @@ import {
   Star,
   Calendar
 } from 'lucide-react';
-import { Student, StudentTableProps } from '../../types/student.types';
-import { getRankColor, getRatingColor } from '../../utils/student.utils';
 
 const columns = [
   {
@@ -104,10 +104,10 @@ const StudentTable: React.FC<StudentTableProps> = ({
   onAddStudent
 }) => {
 
-  // Render cell content
+  // cell content
   const renderCell = React.useCallback((student: Student, columnKey: React.Key) => {
     const cellValue = student[columnKey as keyof Student];
-    console.log(student.updatedAt);
+    // console.log(student.updatedAt);
     switch (columnKey) {
       case "name":
         return (
@@ -164,8 +164,8 @@ const StudentTable: React.FC<StudentTableProps> = ({
             <Chip
               className="capitalize font-semibold"
               color={getRatingColor(student.rating)}
-              size="sm"
-              variant="flat"
+              size="md"
+              variant="light"
             >
               {student.rating || "N/A"}
             </Chip>
@@ -177,8 +177,8 @@ const StudentTable: React.FC<StudentTableProps> = ({
             <Chip
               className="capitalize font-semibold"
               color={getRatingColor(student.maxRating)}
-              size="sm"
-              variant="flat"
+              size="md"
+              variant="light"
             >
               {student.maxRating || "N/A"}
             </Chip>
@@ -190,8 +190,8 @@ const StudentTable: React.FC<StudentTableProps> = ({
             <Chip
               className="capitalize font-semibold"
               color={getRankColor(student.rank)}
-              size="sm"
-              variant="flat"
+              size="md"
+              variant="light"
             >
               {student.rank || "Unrated"}
             </Chip>
@@ -199,7 +199,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
         );
       case "lastUpdate":
         return (
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center">
             <p className="text-sm text-text-primary dark:text-text-primary-dark">
               {new Date(student.updatedAt).toLocaleDateString()}
             </p>
@@ -285,7 +285,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                           column.uid === "codeforcesHandle" ? 150 :
                             column.uid === "rating" ? 120 :
                               column.uid === "maxRating" ? 150 :
-                                column.uid === "rank" ? 130 :
+                                column.uid === "rank" ? 100 :
                                   column.uid === "lastUpdate" ? 140 :
                                     column.uid === "actions" ? 100 : null
                   }
@@ -331,7 +331,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
               loadingState={loading ? "loading" : "idle"}
             >
               {(item) => (
-                <TableRow key={item._id} className="hover:bg-background dark:hover:bg-background-dark transition-colors">
+                <TableRow href={`/student/${item._id}`} key={item._id} className="hover:bg-background dark:hover:bg-background-dark transition-colors cursor-pointer">
                   {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
                 </TableRow>
               )}

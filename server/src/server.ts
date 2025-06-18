@@ -6,6 +6,7 @@ import { keepAlive } from './utils/keepAlive.utils';
 import authRoutes from './routes/auth.routes';
 import studentRoutes from './routes/student.routes';
 import syncRoutes from './routes/sync.routes';
+import studentProfileRoutes from './routes/studentProfile.routes';
 import dotenv from 'dotenv';
 import logger from './utils/logger.utils';
 import CronScheduler from './services/cronSchedule.service';
@@ -39,6 +40,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/profile', studentProfileRoutes);
 
 mongoose.connect(MONGODB_URI).then(async () => {
   logger.info('Connected to MongoDB');

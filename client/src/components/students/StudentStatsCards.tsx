@@ -22,7 +22,7 @@ const StudentStatsCards: React.FC<StudentStatsCardsProps> = ({ students, totalCo
     visible: { opacity: 1, y: 0 }
   };
 
-  // students with ratings above 1600 (Expert+)
+  // students with ratings above 1600
   const expertPlusCount = students.filter(s => (s.rating || 0) >= 1600).length;
 
   const stats = [

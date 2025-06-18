@@ -13,7 +13,43 @@ declare global {
   }
 }
 
+// middleware to check edit access
+export const hasEditAccess = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user as IUser;
+  if (user.role !== 'admin' || !user.adminConfig.hasEditAccess) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+}
 
+// middleware to check delete access
+export const hasDeleteAccess = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user as IUser;
+  if (user.role !== 'admin' || !user.adminConfig.hasDeleteAccess) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+}
+
+// middleware to check critial access like manual sync
+export const hasCritialAccess = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user as IUser;
+  if (user.role !== 'admin' || !user.adminConfig.hasCritialAccess) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+}
+
+// middleware to check admin access
+export const hasAdminAccess = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user as IUser;
+  if (user.role !== 'admin') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+}
+
+// middleware for auth
 export const protect = async (req: Request, res: Response, next: NextFunction) => {
   let token;
 

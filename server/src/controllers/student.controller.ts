@@ -1,14 +1,15 @@
 import { Request, Response } from 'express';
 import Student, { IStudent } from '../models/student.model';
 import { fetchCodeforcesUser, validateForm } from '../utils/student.utils';
+import CodeforcesProfileSyncService from '../services/codeforcesSync.service';
+import mongoose from 'mongoose';
 
-
-
+// Create a new student
 export const create = async (req: Request, res: Response) => {
   try {
     const { name, email, phoneNumber, codeforcesHandle } = req.body;
 
-    const errors = validateForm(req.body);
+    const errors = validateForm(req.body);// validate from fields
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
@@ -43,7 +44,7 @@ export const create = async (req: Request, res: Response) => {
       maxRating: codeforcesUser?.maxRating || 0,
       rank: codeforcesUser?.rank || '',
       country: codeforcesUser?.country || '',
-      lastSubmissionTime: new Date(),
+      lastSubmissionTime: new Date('2005-01-01T00:00:00.000Z'),// default value, which is older then codeforces launch date to ensure that we sync all the submissions
       lastDataSync: new Date(),
       inactivityEmailCount: 0,
       autoEmailEnabled: true,
@@ -62,8 +63,12 @@ export const create = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: 'Student created successfully',
-      student: savedStudent
+      student: savedStudent,
     });
+
+    // sync the student's codeforces profile
+    await CodeforcesProfileSyncService.syncSingleProfile(savedStudent._id as mongoose.Types.ObjectId);
+
   } catch (error: any) {
     // if validation error
     if (error.name === 'ValidationError') {
@@ -83,12 +88,13 @@ export const create = async (req: Request, res: Response) => {
   }
 }
 
+// udpate a student
 export const update = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, email, phoneNumber, codeforcesHandle } = req.body;
 
-    const errors = validateForm(req.body);
+    const errors = validateForm(req.body);// validate form fields
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
@@ -122,9 +128,6 @@ export const update = async (req: Request, res: Response) => {
         avatarUrl: codeforcesUser?.avatar || codeforcesHandle.titlePhoto || '',
         currentRating: codeforcesUser?.rating || 0,
         maxRating: codeforcesUser?.maxRating || 0,
-        lastDataSync: new Date(),
-        inactivityEmailCount: 0,
-        autoEmailEnabled: true,
         updatedAt: new Date()
       },
       { new: true, runValidators: true },
@@ -135,11 +138,16 @@ export const update = async (req: Request, res: Response) => {
         message: 'Failed to update student'
       });
     }
+
     res.status(200).json({
       success: true,
       message: 'Student updated successfully',
-      student: updatedStudent
+      student: updatedStudent,
     });
+
+    // Re-sync profile data after update
+    await CodeforcesProfileSyncService.syncSingleProfile(new mongoose.Types.ObjectId(id));
+
   } catch (error: any) {
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map((err: any) => err.message);
@@ -158,9 +166,12 @@ export const update = async (req: Request, res: Response) => {
   }
 }
 
+// delete a student by id
 export const deleteStudent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    // check if student exists
     const student = await Student.findById(id);
     if (!student) {
       res.status(404).json({
@@ -182,6 +193,7 @@ export const deleteStudent = async (req: Request, res: Response) => {
   }
 }
 
+// get a student by id
 export const getById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -205,10 +217,12 @@ export const getById = async (req: Request, res: Response) => {
   }
 }
 
+// get all students
 export const getAll = async (req: Request, res: Response) => {
   try {
     const { page = '1', limit = '50', search = '', sortBy = 'name', order = 'asc', } = req.query;
 
+    // query params to usable numbers
     const pageNum = Number(page);
     const limitNum = Number(limit);
     const skip = (pageNum - 1) * limitNum;
@@ -226,7 +240,7 @@ export const getAll = async (req: Request, res: Response) => {
       ],
     };
 
-    const [totalCount, students] = await Promise.all([
+    const [totalCount, students] = await Promise.all([// parallel execution for totalCount and students
       Student.countDocuments(query),
       Student.find(query)
         .sort({ [sortField]: sortOrder })
@@ -234,7 +248,7 @@ export const getAll = async (req: Request, res: Response) => {
         .limit(limitNum),
     ]);
 
-    const totalPages = Math.ceil(totalCount / limitNum);
+    const totalPages = Math.ceil(totalCount / limitNum);// calculate total pages
 
     res.status(200).json({
       success: true,

@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import cron from 'node-cron';
 import CronScheduler from '../services/cronSchedule.service';
 
+// Generate cron expression from schedule input
 const generateCronExpression = (input: string): string => {
   input = input.toLowerCase().trim();
 
@@ -19,7 +20,7 @@ const generateCronExpression = (input: string): string => {
     saturday: 6,
   };
 
-  const timeRegex = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/;
+  const timeRegex = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/;// regex for time format
   const match = input.match(timeRegex);
 
   if (!match) throw new Error("Invalid time format");
@@ -57,7 +58,7 @@ export const createSettings = async (req: Request, res: Response) => {
 
     let cronSchedule: string;
     try {
-      cronSchedule = generateCronExpression(scheduleInput);
+      cronSchedule = generateCronExpression(scheduleInput);// cron expression from scheduleInput
     } catch (error: any) {
       cronSchedule = '0 2 * * *';
     }
@@ -81,7 +82,7 @@ export const createSettings = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('Error creating settings:', error);
+    // console.error('Error creating settings:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -103,7 +104,7 @@ export const getSettings = async (req: Request, res: Response) => {
       settings
     });
   } catch (error: any) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -111,7 +112,34 @@ export const getSettings = async (req: Request, res: Response) => {
   }
 }
 
-export const updateSettings = async (req: Request, res: Response) => {
+// auto sync all student toggle
+export const toggleAutoSync = async (req: Request, res: Response) => {
+  try {
+    const { enabled } = req.body;
+    
+    await SystemSetting.updateOne({}, { $set: { isAutoSyncEnabled: enabled } });
+
+    try {
+      await CronScheduler.updateSchedule();
+    } catch (schedulerError) {
+      // console.error('Error updating cron scheduler:', schedulerError);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Auto sync status updated successfully'
+    });
+  } catch (error: any) {
+    // console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+}
+
+// update schedule
+export const updateSchedule = async (req: Request, res: Response) => {
   try {
     const { scheduleInput } = req.body;
     const adminId = req.user?._id;
@@ -160,7 +188,7 @@ export const updateSettings = async (req: Request, res: Response) => {
     try {
       await CronScheduler.updateSchedule();
     } catch (schedulerError) {
-      console.error('Error updating cron scheduler:', schedulerError);
+      // console.error('Error updating cron scheduler:', schedulerError);
     }
 
     res.status(200).json({
@@ -172,7 +200,7 @@ export const updateSettings = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('Error updating settings:', error);
+    // console.error('Error updating settings:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -180,6 +208,7 @@ export const updateSettings = async (req: Request, res: Response) => {
   }
 };
 
+// sync all profiles for manual sync
 export const syncAllProfiles = async (req: Request, res: Response) => {
   try {
     const studentIds = (await Student.distinct('_id')) as mongoose.Types.ObjectId[];
@@ -189,7 +218,7 @@ export const syncAllProfiles = async (req: Request, res: Response) => {
         message: 'No students found'
       });
     }
-    const { totalStudents, successCount, errorCount } = await CodeforcesProfileSyncService.syncAllProfiles(studentIds);
+    const { totalStudents, successCount, errorCount } = await CodeforcesProfileSyncService.syncAllProfiles(studentIds);// sync all profiles service
     res.status(200).json({
       success: true,
       message: 'All profiles synced successfully',
@@ -209,6 +238,7 @@ export const syncAllProfiles = async (req: Request, res: Response) => {
   }
 }
 
+// sync single profile
 export const syncProfile = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

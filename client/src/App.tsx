@@ -9,6 +9,7 @@ import NotFound from './pages/NotFound';
 import Login from './components/auth/Signin';
 import Students from './pages/Students';
 import AdminSettings from './pages/AdminSettings';
+import StudentProfile from './pages/StudentProfile';
 
 const App: React.FC = () => {
   return (
@@ -24,6 +25,7 @@ const App: React.FC = () => {
               <Route element={<ProtectedRoute />}>
                 <Route path="/students" element={<Students />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/student/:studentId" element={<StudentProfile />} />
               </Route>
 
               {/* 404 route */}

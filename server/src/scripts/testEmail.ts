@@ -15,7 +15,7 @@ async function testEmail() {
 
   try {
     await transporter.verify();
-    console.log('✅ SMTP connection successful');
+    console.log('SMTP connection successful');
 
     const info = await transporter.sendMail({
       from: process.env.SMTP_USER,
@@ -25,9 +25,9 @@ async function testEmail() {
       html: '<h1>✅ Email Configuration Working!</h1><p>SPMS can now send emails.</p>'
     });
 
-    console.log('✅ Test email sent:', info.messageId);
+    console.log('Test email sent:', info.messageId);
   } catch (error: any) {
-    console.error('❌ Email configuration failed:', error.message);
+    console.error('Email configuration failed:', error.message);
   }
 }
 

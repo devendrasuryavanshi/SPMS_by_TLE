@@ -15,8 +15,10 @@ import EditStudentModal from '../components/students/EditStudentModal';
 import StudentStatsCards from '../components/students/StudentStatsCards';
 import { ApiResponse, Student } from '../types/student.types';
 import { handleExportCSV } from '../utils/student.utils';
+import { useNavigate } from 'react-router-dom';
 
 const Students: React.FC = () => {
+  const navigate = useNavigate();
 
   // modal controls
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure();
@@ -70,27 +72,6 @@ const Students: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const sortBy = sortDescriptor.column === 'lastUpdate' ? 'updatedAt' : sortDescriptor.column as string;
-    const order = sortDescriptor.direction === "ascending" ? "asc" : "desc";
-    fetchStudents(currentPage, filterValue, sortBy, order);
-  }, [currentPage, rowsPerPage, sortDescriptor, filterValue]);
-
-  // Debounced search
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      } else {
-        const sortBy = sortDescriptor.column as string;
-        const order = sortDescriptor.direction === "ascending" ? "asc" : "desc";
-        fetchStudents(1, filterValue, sortBy, order);
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [filterValue]);
-
   const handleSearch = (value: string) => {
     setFilterValue(value);
   };
@@ -119,7 +100,8 @@ const Students: React.FC = () => {
   };
 
   const handleViewStudent = (id: string) => {
-    console.log(id);
+    navigate(`/student/${id}`);
+    // console.log(`View student with ID: ${id}`);
   };
 
   const handleEditStudent = (student: Student) => {
@@ -143,6 +125,27 @@ const Students: React.FC = () => {
     let filteredStudents = [...students];
     return filteredStudents;
   }, [students]);
+
+  useEffect(() => {
+    const sortBy = sortDescriptor.column === 'lastUpdate' ? 'updatedAt' : sortDescriptor.column as string;
+    const order = sortDescriptor.direction === "ascending" ? "asc" : "desc";
+    fetchStudents(currentPage, filterValue, sortBy, order);
+  }, [currentPage, rowsPerPage, sortDescriptor, filterValue]);
+
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+      } else {
+        const sortBy = sortDescriptor.column as string;
+        const order = sortDescriptor.direction === "ascending" ? "asc" : "desc";
+        fetchStudents(1, filterValue, sortBy, order);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [filterValue]);
 
   return (
     <div className="min-h-screen bg-background dark:bg-background-dark py-4 sm:py-8">

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
+import api from '../plugins/axios';
 import {
   Card,
   CardBody,
@@ -10,7 +12,8 @@ import {
   Chip,
   Spinner,
   Select,
-  SelectItem
+  SelectItem,
+  Switch,
 } from '@nextui-org/react';
 import {
   Settings,
@@ -25,10 +28,8 @@ import {
   Activity,
   Shield,
   Timer,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import api from '../plugins/axios';
 
 interface SystemSettings {
   _id: string;
@@ -38,6 +39,7 @@ interface SystemSettings {
   lastUpdatedBy: string;
   updatedAt: string;
   createdAt: string;
+  isAutoSyncEnabled: boolean;
 }
 
 interface SyncResult {
@@ -53,6 +55,7 @@ const AdminSettings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [scheduleInput, setScheduleInput] = useState('');
+  const [autoSyncToggleLoading, setAutoSyncToggleLoading] = useState(false);
   const [lastSyncResult, setLastSyncResult] = useState<SyncResult | null>(null);
 
   // Predefined schedule options
@@ -67,7 +70,7 @@ const AdminSettings: React.FC = () => {
     { value: 'every sunday at 11pm', label: 'Every Sunday at 11:00 PM' },
   ];
 
-  // Check if sync button should be disabled (last sync was within 6 hours)
+  // if sync button should be disabled (last sync was within 6 hours)
   const isSyncDisabled = () => {
     if (!settings?.lastSyncDate) return false;
     const lastSync = new Date(settings.lastSyncDate);
@@ -102,7 +105,7 @@ const AdminSettings: React.FC = () => {
       }
     } catch (error: any) {
       toast.error('Failed to fetch settings');
-      console.error('Error fetching settings:', error);
+      // console.error('Error fetching settings:', error);
     } finally {
       setLoading(false);
     }
@@ -117,8 +120,8 @@ const AdminSettings: React.FC = () => {
 
     setSaving(true);
     try {
-      const response = await api.put('/sync/settings', {
-        scheduleInput: scheduleInput.trim()
+      const response = await api.patch('/sync/settings/schedule', {
+        scheduleInput: scheduleInput.trim(),
       });
 
       if (response.data.success) {
@@ -130,6 +133,25 @@ const AdminSettings: React.FC = () => {
       toast.error(message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Toggle auto-sync functionality
+  const handleAutoSyncToggle = async (enabled: boolean) => {
+    setAutoSyncToggleLoading(true);
+    try {
+      const response = await api.patch('/sync/settings/auto-sync', { enabled });
+      if (response.data.success) {
+        setSettings(prev => prev ? { ...prev, isAutoSyncEnabled: enabled } : null);
+        toast.success(`Auto sync ${enabled ? 'enabled' : 'disabled'} successfully`);
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to update auto sync status';
+      toast.error(message);
+      // Revert the toggle state on error to reflect the actual status
+      setSettings(prev => prev ? { ...prev, autoSyncEnabled: !enabled } : null);
+    } finally {
+      setAutoSyncToggleLoading(false);
     }
   };
 
@@ -152,10 +174,6 @@ const AdminSettings: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -163,15 +181,19 @@ const AdminSettings: React.FC = () => {
       y: 0,
       transition: {
         duration: 0.6,
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
   };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
   if (loading) {
     return (
@@ -216,11 +238,9 @@ const AdminSettings: React.FC = () => {
           animate="visible"
         >
           {/* Main Layout - Two Columns on Large Screens */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Left Column - Metadata & System Info */}
-            <motion.div className="lg:col-span-1 space-y-6" variants={itemVariants}>
-
+            <motion.div className="md:col-span-1 space-y-6" variants={itemVariants}>
               {/* Current Configuration Overview */}
               <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
                 <CardHeader className="pb-4">
@@ -298,14 +318,17 @@ const AdminSettings: React.FC = () => {
                     <span className="text-sm text-secondary dark:text-secondary-dark">
                       Auto Sync Status
                     </span>
-                    <Chip
+                    {/* Auto Sync Toggle Button */}
+                    <Switch
+                      isSelected={settings?.isAutoSyncEnabled}
+                      onValueChange={handleAutoSyncToggle}
+                      isDisabled={autoSyncToggleLoading}
                       size="sm"
                       color="success"
-                      variant="flat"
                       startContent={<CheckCircle className="w-3 h-3" />}
+                      endContent={<AlertCircle className="w-3 h-3" />}
                     >
-                      Active
-                    </Chip>
+                    </Switch>
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-background dark:bg-background-dark rounded-lg">
@@ -328,11 +351,11 @@ const AdminSettings: React.FC = () => {
                     </span>
                     <Chip
                       size="sm"
-                      color={isSyncDisabled() ? "warning" : "success"}
+                      color={isSyncDisabled() ? 'warning' : 'success'}
                       variant="flat"
                       startContent={<Timer className="w-3 h-3" />}
                     >
-                      {isSyncDisabled() ? "Cooldown" : "Available"}
+                      {isSyncDisabled() ? 'Cooldown' : 'Available'}
                     </Chip>
                   </div>
                 </CardBody>
@@ -377,8 +400,7 @@ const AdminSettings: React.FC = () => {
             </motion.div>
 
             {/* Right Column - Settings Configuration */}
-            <motion.div className="lg:col-span-2 space-y-6" variants={itemVariants}>
-
+            <motion.div className="md:col-span-2 space-y-6" variants={itemVariants}>
               {/* Schedule Configuration */}
               <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
                 <CardHeader className="pb-4">
@@ -401,17 +423,18 @@ const AdminSettings: React.FC = () => {
                       className="w-full"
                       size="lg"
                       classNames={{
-                        trigger: "bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20",
-                        value: "text-text-primary dark:text-text-primary-dark",
+                        trigger:
+                          'bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20',
+                        value: 'text-text-primary dark:text-text-primary-dark',
                       }}
-                      onSelectionChange={(keys) => {
+                      onSelectionChange={keys => {
                         const selected = Array.from(keys)[0] as string;
                         if (selected) {
                           setScheduleInput(selected);
                         }
                       }}
                     >
-                      {scheduleOptions.map((option) => (
+                      {scheduleOptions.map(option => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -428,11 +451,12 @@ const AdminSettings: React.FC = () => {
                       type="text"
                       placeholder="e.g., every day at 2am, every monday at 9:30pm"
                       value={scheduleInput}
-                      onChange={(e) => setScheduleInput(e.target.value)}
+                      onChange={e => setScheduleInput(e.target.value)}
                       size="lg"
                       classNames={{
-                        input: "text-text-primary dark:text-text-primary-dark",
-                        inputWrapper: "bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20 hover:border-primary/40 dark:hover:border-primary-dark/40 focus-within:border-primary dark:focus-within:border-primary-dark"
+                        input: 'text-text-primary dark:text-text-primary-dark',
+                        inputWrapper:
+                          'bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20 hover:border-primary/40 dark:hover:border-primary-dark/40 focus-within:border-primary dark:focus-within:border-primary-dark',
                       }}
                       startContent={<Clock className="w-4 h-4 text-secondary dark:text-secondary-dark" />}
                     />
@@ -489,7 +513,6 @@ const AdminSettings: React.FC = () => {
                 <Divider className="bg-secondary/20 dark:bg-secondary-dark/20" />
                 <CardBody className="py-6">
                   <div className="space-y-4">
-
                     {/* Sync Status Warning */}
                     {isSyncDisabled() ? (
                       <div className="p-4 bg-warning/10 dark:bg-warning-dark/10 border border-warning/20 dark:border-warning-dark/20 rounded-xl">
@@ -500,8 +523,9 @@ const AdminSettings: React.FC = () => {
                               Sync Cooldown Active
                             </p>
                             <p className="text-xs text-warning/80 dark:text-warning-dark/80 leading-relaxed">
-                              Manual sync is temporarily disabled to prevent API rate limiting.
-                              Next sync available in: <span className="font-semibold">{getTimeUntilSyncAvailable()}</span>
+                              Manual sync is temporarily disabled to prevent API rate limiting. Next
+                              sync available in:{' '}
+                              <span className="font-semibold">{getTimeUntilSyncAvailable()}</span>
                             </p>
                           </div>
                         </div>
@@ -515,7 +539,10 @@ const AdminSettings: React.FC = () => {
                               Manual Sync Guidelines
                             </p>
                             <p className="text-xs text-warning/80 dark:text-warning-dark/80 leading-relaxed">
-                              Manual synchronization will fetch data for all students immediately. This process may take several minutes and should be used sparingly to avoid API rate limits. A 6-hour cooldown applies after each manual sync.
+                              Manual synchronization will fetch data for all students immediately.
+                              This process may take several minutes and should be used sparingly to
+                              avoid API rate limits. A 6-hour cooldown applies after each manual
+                              sync.
                             </p>
                           </div>
                         </div>
@@ -523,22 +550,23 @@ const AdminSettings: React.FC = () => {
                     )}
 
                     {/* Sync Button */}
-                    <Button
-                      color={isSyncDisabled() ? "default" : "secondary"}
-                      size="lg"
-                      className="w-full font-semibold"
-                      startContent={!syncing && <RefreshCw className="w-4 h-4" />}
-                      isLoading={syncing}
-                      onClick={handleManualSync}
-                      isDisabled={isSyncDisabled()}
-                    >
-                      {syncing
-                        ? 'Synchronizing All Profiles...'
-                        : isSyncDisabled()
-                          ? `Sync Available in ${getTimeUntilSyncAvailable()}`
-                          : 'Start Manual Sync'
-                      }
-                    </Button>
+                    <div className='flex justify-end'>
+                      <Button
+                        color={isSyncDisabled() ? 'default' : 'secondary'}
+                        size="lg"
+                        className="font-semibold"
+                        startContent={!syncing && <RefreshCw className="w-4 h-4" />}
+                        isLoading={syncing}
+                        onClick={handleManualSync}
+                        isDisabled={isSyncDisabled()}
+                      >
+                        {syncing
+                          ? 'Synchronizing All Profiles...'
+                          : isSyncDisabled()
+                            ? `Sync Available in ${getTimeUntilSyncAvailable()}`
+                            : 'Start Manual Sync'}
+                      </Button>
+                    </div>
                   </div>
                 </CardBody>
               </Card>
@@ -563,11 +591,26 @@ const AdminSettings: React.FC = () => {
                           How Data Synchronization Works
                         </p>
                         <div className="text-xs text-primary/80 dark:text-primary-dark/80 leading-relaxed space-y-1">
-                          <p>• <strong>Automated Sync:</strong> Runs based on your configured schedule to keep data current</p>
-                          <p>• <strong>Manual Sync:</strong> Immediate sync available with 6-hour cooldown for rate limiting</p>
-                          <p>• <strong>Data Sources:</strong> Fetches latest submissions, contests, and ratings from Codeforces</p>
-                          <p>• <strong>Email Notifications:</strong> Automatically sends reminders to inactive students</p>
-                          <p>• <strong>Error Handling:</strong> Robust retry logic and detailed logging for troubleshooting</p>
+                          <p>
+                            • <strong>Automated Sync:</strong> Runs based on your configured
+                            schedule to keep data current
+                          </p>
+                          <p>
+                            • <strong>Manual Sync:</strong> Immediate sync available with 6-hour
+                            cooldown for rate limiting
+                          </p>
+                          <p>
+                            • <strong>Data Sources:</strong> Fetches latest submissions, contests,
+                            and ratings from Codeforces
+                          </p>
+                          <p>
+                            • <strong>Email Notifications:</strong> Automatically sends reminders
+                            to inactive students
+                          </p>
+                          <p>
+                            • <strong>Error Handling:</strong> Robust retry logic and detailed
+                            logging for troubleshooting
+                          </p>
                         </div>
                       </div>
                     </div>

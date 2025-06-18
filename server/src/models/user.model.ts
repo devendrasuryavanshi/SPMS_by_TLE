@@ -6,6 +6,11 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'admin' | 'student';
+  adminConfig: {
+    hasEditAccess: boolean;
+    hasDeleteAccess: boolean;
+    hasCritialAccess: boolean;
+  }
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -31,6 +36,20 @@ const UserSchema: Schema = new Schema(
       type: String,
       enum: ['admin', 'student'],
       default: 'student',
+    },
+    adminConfig: {
+      hasEditAccess: {
+        type: Boolean,
+        default: false,
+      },
+      hasDeleteAccess: {
+        type: Boolean,
+        default: false,
+      },
+      hasCritialAccess: {
+        type: Boolean,
+        default: false,
+      },
     }
   },
   {

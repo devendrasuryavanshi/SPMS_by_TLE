@@ -47,3 +47,58 @@ body {
   width: 100%;
   min-height: 100vh;
 }
+
+
+
+
+/* Base styles provided by react-calendar-heatmap */
+@import 'react-calendar-heatmap/dist/styles.css';
+
+/* Custom color scale for the heatmap */
+.react-calendar-heatmap .color-empty {
+  fill: #ebedf0;
+}
+
+/* Green color scale */
+.react-calendar-heatmap .color-scale-1 {
+  fill: #c6e48b; /* Lightest green */
+}
+
+.react-calendar-heatmap .color-scale-2 {
+  fill: #7bc96d; /* Medium light green */
+}
+
+.react-calendar-heatmap .color-scale-3 {
+  fill: #239a3b; /* Medium dark green */
+}
+
+.react-calendar-heatmap .color-scale-4 {
+  fill: #196127; /* Darkest green */
+}
+
+/* Optional: Dark mode adjustments */
+.dark .react-calendar-heatmap .color-empty {
+  fill: #161b22; /* Darker gray for empty days in dark mode */
+}
+
+.dark .react-calendar-heatmap .color-scale-1 {
+  fill: #0e4429; /* Dark mode lightest green */
+}
+
+.dark .react-calendar-heatmap .color-scale-2 {
+  fill: #006d32; /* Dark mode medium light green */
+}
+
+.dark .react-calendar-heatmap .color-scale-3 {
+  fill: #26a641; /* Dark mode medium dark green */
+}
+
+.dark .react-calendar-heatmap .color-scale-4 {
+  fill: #39d353; /* Dark mode darkest green */
+}
+
+.react-calendar-heatmap rect {
+  stroke-width: 0;
+  rx: 3;
+  ry: 3;
+}

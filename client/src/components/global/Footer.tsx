@@ -5,6 +5,10 @@ import { Link } from "@nextui-org/react";
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
+  if (window.location.pathname.startsWith("/student/")) {
+    return null;
+  }
+
   const footerLinks = [
     {
       title: "Student Management",

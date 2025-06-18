@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 // import { v4 as uuidv4 } from 'uuid';
 import User, { IUser } from '../models/user.model';
 
+// JWT configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRES_IN = '7d'; // 7 days
 const maxAge = 7 * 24 * 60 * 60 * 1000;
@@ -17,6 +18,8 @@ const generateToken = (user: IUser) => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
+
+// Registers a new user if registration is enabled
 export const register = async (req: Request, res: Response) => {
   try {
     if (!isRegistrationEnabled) {
@@ -32,6 +35,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
 
+    // check if the user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'User already exists' });
@@ -44,6 +48,7 @@ export const register = async (req: Request, res: Response) => {
 
     const token = generateToken(user);
 
+    // auth cookie
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
@@ -75,6 +80,7 @@ export const register = async (req: Request, res: Response) => {
   }
 }
 
+// Logs in a user
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -93,6 +99,7 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    // check if the password matches
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({
@@ -129,6 +136,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// Returns the currently authenticated user
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
     const user = req.user;
@@ -142,17 +150,18 @@ export const getCurrentUser = async (req: Request, res: Response) => {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
+// Logs out the user by clearing the auth cookie
 export const logout = async (req: Request, res: Response) => {
   try {
-    res.clearCookie('token');
+    res.clearCookie('token');// clear the auth  cookie
     res.status(200).json({ success: true, message: 'Logged out successfully' });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server error' });
   }

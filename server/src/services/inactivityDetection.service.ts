@@ -11,7 +11,7 @@ interface InactiveStudent {
 
 class InactivityDetectionService {
   private emailService: EmailService;
-  private readonly INACTIVITY_THRESHOLD_DAYS = 7;
+  private readonly INACTIVITY_THRESHOLD_DAYS = 7;// threshold for inactivity
 
   constructor() {
     this.emailService = new EmailService();
@@ -31,10 +31,13 @@ class InactivityDetectionService {
         codeforcesHandle: { $exists: true, $ne: '' }
       });
 
+      // console.log(students);
+
       const inactiveStudents: InactiveStudent[] = [];
 
       for (const student of students) {
-        const inactivityData = await this.checkStudentInactivity(student);
+        const inactivityData = await this.checkStudentInactivity(student);// check student inactivity
+        // console.log(inactivityData);
         if (inactivityData) {
           inactiveStudents.push(inactivityData);
         }
@@ -45,7 +48,7 @@ class InactivityDetectionService {
       let emailsFailed = 0;
 
       for (const inactiveData of inactiveStudents) {
-        const emailSent = await this.sendInactivityEmail(inactiveData);
+        const emailSent = await this.sendInactivityEmail(inactiveData);// send inactivity email
         if (emailSent) {
           emailsSent++;
           await Student.findByIdAndUpdate(inactiveData.student._id, {
@@ -83,6 +86,8 @@ class InactivityDetectionService {
           lastSubmissionDate: undefined
         };
       }
+
+      // console.log(student.lastSubmissionTime);
 
       if (student.lastSubmissionTime < cutoffDate) {
         const daysDiff = Math.floor(

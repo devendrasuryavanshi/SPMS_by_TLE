@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error('Error loading user data:', error);
+        // console.error('Error loading user data:', error);
         setError('Failed to load user data');
         authService.logout();
         setUser(null);

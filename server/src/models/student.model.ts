@@ -1,4 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import ContestHistory from './contestHistory.model';
+import Submission from './submission.model';
+import RecommendedProblem from './recommendedProblem.model';
 
 export interface IStudent extends Document {
   name: string;
@@ -10,7 +13,7 @@ export interface IStudent extends Document {
   maxRating: number;
   rank: string;
   country: string;
-  lastSubmissionTime: Date;
+  lastSubmissionTime?: Date;
   lastContestTime: Date;
   lastDataSync: Date;
   syncStatus: string;
@@ -61,7 +64,6 @@ const StudentSchema: Schema = new Schema(
     },
     lastSubmissionTime: {
       type: Date,
-      required: true
     },
     lastContestTime: {
       type: Date,
@@ -90,5 +92,22 @@ const StudentSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+StudentSchema.pre('findOneAndDelete', async function (next) {
+  const student: any = await this.model.findOne(this.getFilter());
+
+  if (!student) return next();
+
+  const studentId = student._id;
+
+  // Delete dependent documents
+  await Promise.all([
+    ContestHistory.deleteMany({ studentId }),
+    Submission.deleteMany({ studentId }),
+    RecommendedProblem.deleteMany({ studentId }),
+  ]);
+
+  next();
+});
 
 export default mongoose.model<IStudent>('Student', StudentSchema);

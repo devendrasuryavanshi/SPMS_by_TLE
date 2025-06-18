@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// keep alive for render.com server
 const keepAlive = (url: string) => {
   setInterval(async () => {
     try {

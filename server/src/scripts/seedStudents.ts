@@ -27,14 +27,14 @@ interface ApiResponse {
   users: ApiUser[];
 }
 
-const generatePhoneNumber = (): string => {
+const generatePhoneNumber = (): string => {// fake phone number generator
   const countryCodes = ['+91', '+1', '+44', '+61', '+81', '+49', '+33', '+86', '+7', '+55'];
   const countryCode = countryCodes[Math.floor(Math.random() * countryCodes.length)];
   const number = Math.floor(Math.random() * 9000000000) + 1000000000;
   return `${countryCode} ${number}`;
 };
 
-const generateEmail = (handle: string, fulllName: string): string => {
+const generateEmail = (handle: string, fulllName: string): string => {// fake email generator
   if (!fulllName || fulllName === 'Unknown') {
     return `${handle}@gmail.com`;
   }
@@ -61,8 +61,8 @@ const seedStudents = async (): Promise<void> => {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/spms';
     await mongoose.connect(mongoUri);
-    console.log('✅ Connected to MongoDB');
-    console.log('📡 Fetching users from Codeforces API...');
+    console.log('Connected to MongoDB');
+    console.log('Fetching users from Codeforces API...');
 
     const response = await axios.get<ApiResponse>('https://codeforces-lite-dashboard.vercel.app/api/users/list', {
       headers: {
@@ -73,11 +73,10 @@ const seedStudents = async (): Promise<void> => {
     if (!response.data.success) throw new Error('API request failed');
 
     const allUsers = response.data.users;
-    console.log(`⚙️ Received ${allUsers.length} users`);
+    console.log(`eceived ${allUsers.length} users`);
 
-    // 💡 Filter the users based on criteria
+    // filter the users based on criteria
     const validUsers = allUsers.filter(isValidUser).slice(0, 100);
-    console.log(`✅ Selected ${validUsers.length} users with valid full names and ratings`);
 
     const students = validUsers.map((user) => ({
       name: user.fulllName,
@@ -89,7 +88,7 @@ const seedStudents = async (): Promise<void> => {
       maxRating: user.maxRating || user.rating,
       rank: user.rank || 'unrated',
       country: user.originalCountryName || user.country || 'Unknown',
-      lastSubmissionTime: user.lastSubmissionDate ? new Date(user.lastSubmissionDate) : new Date(),
+      lastSubmissionTime: new Date('2005-01-01T00:00:00.000Z'),// default past time
       lastDataSync: new Date(),
       inactivityEmailCount: 0,
       autoEmailEnabled: true,
@@ -101,19 +100,18 @@ const seedStudents = async (): Promise<void> => {
     const batchSize = 20;
     let insertedCount = 0;
 
-    console.log('📥 Inserting students into DB...');
 
     for (let i = 0; i < students.length; i += batchSize) {
       const batch = students.slice(i, i + batchSize);
       try {
         const result = await Student.insertMany(batch, { ordered: false });
         insertedCount += result.length;
-        console.log(`🧩 Batch ${i / batchSize + 1}: Inserted ${result.length}`);
+        console.log(`Batch ${i / batchSize + 1}: Inserted ${result.length}`);
       } catch (error: any) {
         if (error.code === 11000) {
           const successfulInserts = error.result?.result?.insertedIds ? Object.keys(error.result.result.insertedIds).length : 0;
           insertedCount += successfulInserts;
-          console.log(`⚠️ Duplicates skipped, ${successfulInserts} inserted in batch`);
+          console.log(`Duplicates skipped, ${successfulInserts} inserted in batch`);
         } else {
           throw error;
         }
@@ -123,14 +121,14 @@ const seedStudents = async (): Promise<void> => {
     console.log(`🎉 Done! Seeded ${insertedCount} valid students.`);
 
   } catch (error) {
-    console.error('❌ Seeding error:', error);
+    // console.error('Seeding error:', error);
     if (axios.isAxiosError(error)) {
-      console.error('⚠️ API Error Details:', error.response?.data || error.message);
+      console.error('API Error Details:', error.response?.data || error.message);
     }
     process.exit(1);
   } finally {
     await mongoose.connection.close();
-    console.log('🔒 Closed MongoDB connection');
+    console.log('Closed MongoDB connection');
     process.exit(0);
   }
 };

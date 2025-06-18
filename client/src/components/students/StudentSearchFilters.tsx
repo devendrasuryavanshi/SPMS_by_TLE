@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, Download, Plus, X } from 'lucide-react';
 import { StudentSearchFiltersProps } from '../../types/student.types';
-import { Card, CardBody, Input, Button, } from '@nextui-org/react';
+import { Card, CardBody, Input, Button, Select, SelectItem } from '@nextui-org/react';
 
 const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
   onSearch,
@@ -12,8 +12,17 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
   onExportCSV,
   onAddStudent
 }) => {
-
   const [filterValue, setFilterValue] = React.useState('');
+
+  const handleClearSearch = () => {
+    setFilterValue("");
+    onSearch("");
+  };
+
+  const handleSearch = () => {
+    onSearch(filterValue);
+  };
+
   return (
     <motion.div
       className="mb-6"
@@ -21,12 +30,11 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.3 }}
     >
-      <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
-        <CardBody className="p-4 sm:p-6">
-          <div className="flex flex-col gap-4">
-            {/* Search and Action Buttons Row */}
-            <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
-              <div className="w-full sm:max-w-[400px]">
+      <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark shadow-sm">
+        <CardBody>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col lg:flex-row justify-between gap-4 items-start lg:items-center">
+              <div className="w-full lg:max-w-md">
                 <Input
                   className="w-full"
                   placeholder="Search by name, email, or handle..."
@@ -38,11 +46,9 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                           size="sm"
                           variant="light"
                           isIconOnly
+                          color="danger"
                           className="min-w-unit-6 w-6 h-6"
-                          onClick={() => {
-                            setFilterValue("");
-                            onSearch("");
-                          }}
+                          onClick={handleClearSearch}
                         >
                           <X size={14} />
                         </Button>
@@ -51,8 +57,9 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                         size="sm"
                         color="primary"
                         variant="flat"
-                        className="min-w-unit-16 h-6"
-                        onClick={() => onSearch(filterValue)}
+                        className="h-7 px-4"
+                        radius="full"
+                        onClick={handleSearch}
                       >
                         Search
                       </Button>
@@ -60,17 +67,17 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                   }
                   value={filterValue}
                   onValueChange={setFilterValue}
-                  onKeyDown={(e) => e.key === 'Enter' && onSearch(filterValue)}
-                  size="sm"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  size="lg"
                   classNames={{
                     inputWrapper: "bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20",
-                    input: "pr-20"
+                    input: "pr-24"
                   }}
                 />
               </div>
-              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <div className="flex flex-wrap gap-3 w-full lg:w-auto justify-end">
                 <Button
-                  color="secondary"
+                  color="success"
                   endContent={<Download size={16} />}
                   onClick={onExportCSV}
                   variant="flat"
@@ -90,9 +97,7 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                 </Button>
               </div>
             </div>
-
-            {/* Stats and Controls Row */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-2 border-t border-secondary/10 dark:border-secondary-dark/10">
+            <div className="ml-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2 border-t border-secondary/10 dark:border-secondary-dark/10">
               <div className="flex items-center gap-4">
                 <span className="text-default-500 text-sm">
                   Total <span className="font-semibold text-primary">{totalCount}</span> students
@@ -101,16 +106,22 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
               <div className="flex items-center gap-2">
                 <label className="flex items-center text-default-500 text-sm">
                   Rows per page:
-                  <select
-                    className="bg-background dark:bg-background-dark outline-none text-default-500 text-sm ml-2 border border-secondary/20 dark:border-secondary-dark/20 rounded px-2 py-1"
-                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                    value={rowsPerPage}
+                  <Select
+                    size="sm"
+                    aria-label="Rows per page"
+                    className="w-[100px] ml-2"
+                    selectedKeys={[String(rowsPerPage)]}
+                    onSelectionChange={(keys) => setRowsPerPage(Number(Array.from(keys)[0]))}
+                    classNames={{
+                      trigger: "bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20",
+                      value: "text-default-500"
+                    }}
                   >
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                  </select>
+                    <SelectItem key="10" value="10">10</SelectItem>
+                    <SelectItem key="15" value="15">15</SelectItem>
+                    <SelectItem key="25" value="25">25</SelectItem>
+                    <SelectItem key="50" value="50">50</SelectItem>
+                  </Select>
                 </label>
               </div>
             </div>

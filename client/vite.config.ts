@@ -13,7 +13,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://contest-tracker-tle-eliminators-uf9u.onrender.com',
+        target: 'https://SPMS.onrender.com',
         changeOrigin: true,
       },
     },

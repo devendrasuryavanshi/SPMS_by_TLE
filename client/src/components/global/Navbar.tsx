@@ -21,13 +21,13 @@ import { useAuth } from "../../context/AuthContext";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 const NavbarComponent = () => {
-  const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
+  const { isAuthenticated, logout, user } = useAuth();
 
   const menuItems = [
     { name: "Student Profiles", href: "/students", icon: <GraduationCap size={18} /> },
-    ...(user?.email === "admin@spms.com" ? [
-      { name: "System Management", href: "/settings", icon: <Settings size={18} /> }
+    ...(user?.email === "admin_spms@gmail.com" ? [
+      { name: "System Management", href: "/admin/settings", icon: <Settings size={18} /> }
     ] : [])
   ];
 

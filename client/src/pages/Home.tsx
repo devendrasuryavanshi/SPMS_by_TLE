@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@nextui-org/react';
 import {
   GraduationCap,
   Calendar,
@@ -9,7 +10,6 @@ import {
   BarChart3,
   ArrowRight,
   Clock,
-  Mail,
   Target,
   Award,
   Activity,
@@ -22,7 +22,6 @@ import {
   Star,
   Sparkles
 } from 'lucide-react';
-import { Button } from '@nextui-org/react';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -122,7 +121,7 @@ const Home: React.FC = () => {
             </motion.p>
 
             <motion.div
-              className="flex flex-col xs:flex-row gap-4 justify-center items-center mb-12 2xl:flex-row 2xl:gap-8"
+              className="flex flex-col xs:flex-row gap-4 justify-center items-center mb-12 2xl:flex-row 2xl:gap-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
@@ -325,102 +324,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Data Synchronization Section */}
-      <section className="py-16 sm:py-20 bg-surface dark:bg-surface-dark">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-text-primary dark:text-text-primary-dark mb-4">
-              Automated Data Management
-            </h2>
-            <p className="text-lg text-secondary dark:text-secondary-dark max-w-2xl mx-auto">
-              Seamless integration with competitive programming platforms
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <motion.div
-              className="lg:col-span-2"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="bg-gradient-to-br from-primary/10 to-tertiary/10 dark:from-primary-dark/10 dark:to-tertiary-dark/10 rounded-2xl p-8 border border-primary/20 dark:border-primary-dark/20">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-primary/20 dark:bg-primary-dark/20 rounded-xl flex items-center justify-center text-primary dark:text-primary-dark">
-                    <Database className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">Codeforces Integration</h3>
-                    <p className="text-secondary dark:text-secondary-dark">Automated daily synchronization</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {[
-                    { label: "Sync Time", value: "2:00 AM", icon: <Clock className="w-4 h-4" /> },
-                    { label: "Frequency", value: "Daily", icon: <Zap className="w-4 h-4" /> },
-                    { label: "Reliability", value: "99.9%", icon: <Shield className="w-4 h-4" /> }
-                  ].map((item, index) => (
-                    <motion.div
-                      key={index}
-                      className="bg-background dark:bg-background-dark rounded-xl p-4 border border-secondary/10 dark:border-secondary-dark/10"
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-primary dark:text-primary-dark">{item.icon}</span>
-                        <span className="text-sm font-medium text-secondary dark:text-secondary-dark">{item.label}</span>
-                      </div>
-                      <span className="text-lg font-bold text-text-primary dark:text-text-primary-dark">{item.value}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <div className="bg-background dark:bg-background-dark rounded-2xl p-6 border border-secondary/10 dark:border-secondary-dark/10 h-full">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-accent/20 dark:bg-accent-dark/20 rounded-xl flex items-center justify-center text-accent dark:text-accent-dark">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-lg font-bold text-text-primary dark:text-text-primary-dark">Smart Alerts</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-3 bg-surface dark:bg-surface-dark rounded-lg border border-secondary/5 dark:border-secondary-dark/5">
-                    <p className="text-sm text-secondary dark:text-secondary-dark mb-1">Inactivity Threshold</p>
-                    <p className="font-semibold text-text-primary dark:text-text-primary-dark">7 Days</p>
-                  </div>
-                  <div className="p-3 bg-surface dark:bg-surface-dark rounded-lg border border-secondary/5 dark:border-secondary-dark/5">
-                    <p className="text-sm text-secondary dark:text-secondary-dark mb-1">Email Reminders</p>
-                    <p className="font-semibold text-text-primary dark:text-text-primary-dark">Automated</p>
-                  </div>
-                  <div className="p-3 bg-surface dark:bg-surface-dark rounded-lg border border-secondary/5 dark:border-secondary-dark/5">
-                    <p className="text-sm text-secondary dark:text-secondary-dark mb-1">Customizable</p>
-                    <p className="font-semibold text-text-primary dark:text-text-primary-dark">Per Student</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
       {/* Call to Action Section */}
       <section className="py-16 sm:py-20 bg-gradient-to-br from-primary/5 via-background to-tertiary/5 dark:from-primary-dark/5 dark:via-background-dark dark:to-tertiary-dark/5">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -442,7 +345,7 @@ const Home: React.FC = () => {
               Join educators using SPMS to monitor, analyze, and optimize competitive programming learning outcomes.
             </p>
 
-            <div className="flex flex-col xs:flex-row gap-4 justify-center items-center mb-12 2xl:flex-row 2xl:gap-8">
+            <div className="flex flex-col xs:flex-row gap-4 justify-center items-center mb-12 2xl:flex-row 2xl:gap-6">
               <Button
                 size="lg"
                 className="bg-black text-white font-semibold rounded-full px-8 h-14 text-base w-64 xs:w-auto hover:bg-gray-800 transition-colors"
@@ -461,7 +364,7 @@ const Home: React.FC = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
                 { label: "Students", value: "1K+" },
                 { label: "Contests", value: "3K+" },

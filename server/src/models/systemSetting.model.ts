@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface ISystemSetting extends Document {
   cronSchedule: string;
   scheduleInput: string;
+  isAutoSyncEnabled: boolean;
   lastSyncDate: Date;
   lastUpdatedBy: mongoose.Types.ObjectId;
   updatedAt: Date;
@@ -18,6 +19,11 @@ const SystemSettingSchema: Schema = new Schema({
     type: String,
     required: true,
     default: 'Every day at 2 AM',
+  },
+  isAutoSyncEnabled: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
   lastSyncDate: {
     type: Date,

@@ -4,9 +4,12 @@ import SystemSetting, { ISystemSetting } from '../models/systemSetting.model';
 import Student, { IStudent } from '../models/student.model';
 import CodeforcesProfileSyncService from './codeforcesSync.service';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 class CronScheduler {
-  private static currentTask: cron.ScheduledTask | null = null;
+  private static currentTask: cron.ScheduledTask | null = null;// current cron job
 
   static async initializeScheduler() {
     logger.info('Initializing cron scheduler');
@@ -19,10 +22,17 @@ class CronScheduler {
       if (this.currentTask) {
         this.currentTask.stop();
         this.currentTask.destroy();
+
+        // Check if auto sync is disabled
+        const settings = await SystemSetting.findOne({});
+        if(settings && !settings.isAutoSyncEnabled) {
+          logger.info('Auto sync is disabled. Stopping cron job.');
+          return;
+        }
         logger.info('Stopped existing cron job');
       }
 
-      const cronSchedule: ISystemSetting | null = await SystemSetting.findOne({});
+      const cronSchedule: ISystemSetting | null = await SystemSetting.findOne({});// get cron schedule from db
       if (!cronSchedule) {
         logger.warn('Cron schedule not found in database. Creating default settings.');
         return;
@@ -52,20 +62,20 @@ class CronScheduler {
             return;
           }
 
-          const result = await CodeforcesProfileSyncService.syncAllProfiles(currentStudentIds);
+          const result = await CodeforcesProfileSyncService.syncAllProfiles(currentStudentIds);// sync all profiles
 
-          logger.info(`✅ Scheduled sync completed successfully:`);
-          logger.info(`   📊 Total: ${result.totalStudents}, Success: ${result.successCount}, Errors: ${result.errorCount}`);
+          logger.info(`Scheduled sync completed successfully:`);
+          logger.info(`Total: ${result.totalStudents}, Success: ${result.successCount}, Errors: ${result.errorCount}`);
 
           if (result.emailStats) {
             logger.info(`   📧 Emails: ${result.emailStats.emailsSent} sent, ${result.emailStats.emailsFailed} failed, ${result.emailStats.inactiveCount} inactive students`);
           }
 
         } catch (error) {
-          logger.error('❌ Error in scheduled profile sync:', error);
+          logger.error('Error in scheduled profile sync:', error);
         }
       }, {
-        timezone: process.env.TZ || 'UTC'
+        timezone: process.env.TZ || 'UTC'// TZ is IST
       });
 
       logger.info(`✅ Cron job scheduled successfully:`);
@@ -75,13 +85,13 @@ class CronScheduler {
       logger.info(`   🌍 Timezone: ${process.env.TZ || 'UTC'}`);
 
     } catch (error) {
-      logger.error('❌ Error setting up cron job:', error);
+      logger.error('Error setting up cron job:', error);
     }
   }
 
   // Method to update cron schedule dynamically
   static async updateSchedule() {
-    logger.info('🔄 Updating cron schedule...');
+    logger.info('Updating cron schedule...');
     await this.setupCronJob();
   }
 

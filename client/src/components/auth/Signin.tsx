@@ -3,27 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Input, Button, Card, CardBody, CardHeader, Divider } from '@nextui-org/react';
 import { Mail, Lock, AlertCircle, Shield, GraduationCap } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin_spms@gmail.com');
+  const [password, setPassword] = useState('1234@Admin');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
   const { login, error, clearError, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    if (error) {
-      setFormError(error);
-    }
-  }, [error]);
+  const toastId = 'demo-login-toast';
 
   const validateForm = () => {// Form vlidation for Email and Password
     if (!email || !password) {
@@ -59,10 +49,28 @@ const Login: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    toast.info('Demo login email: admin_spms@gmail.com, password: 1234@Admin', {
+      id: toastId,
+      position: 'top-center'
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      setFormError(error);
+    }
+  }, [error]);
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-background dark:bg-background-dark">
       <div className="w-full max-w-md">
-
         <Card className="border border-secondary/10 dark:border-secondary-dark/10 shadow-xl bg-surface dark:bg-surface-dark">
           <CardHeader className="flex flex-col gap-2 items-center pb-6 pt-8">
             <div className="flex items-center gap-2 mb-2">
@@ -83,7 +91,6 @@ const Login: React.FC = () => {
                 <span>{formError}</span>
               </div>
             )}
-
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Input

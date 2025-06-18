@@ -10,6 +10,7 @@ import InactivityDetectionService from "./inactivityDetection.service";
 
 const inactivityService = new InactivityDetectionService();
 
+// valid error messages
 const getValidErrorMessage = (error: any): string => {
   let errorMessage = 'Unknown error';
   if (error.message) errorMessage = error.message;
@@ -20,6 +21,7 @@ const getValidErrorMessage = (error: any): string => {
   return errorMessage;
 };
 
+// axios instance for Codeforces API
 const codeforcesApi = axios.create({
   baseURL: 'https://codeforces.com/api',
   timeout: 20000,
@@ -34,7 +36,7 @@ class CodeforcesProfileSyncService {
   private static SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000;
   private static contestProblemCache = new Map<number, any[]>();
 
-  private static async checkCanSyncAllProfiles(): Promise<boolean> {
+  private static async checkCanSyncAllProfiles(): Promise<boolean> {// check if the last sync was more than 6 hours ago
     const settings = await SystemSetting.findOne();
     if (settings && settings.lastSyncDate && settings.lastSyncDate.getTime() > Date.now() - this.SYNC_INTERVAL_MS) {
       return false;
@@ -42,6 +44,7 @@ class CodeforcesProfileSyncService {
     return true;
   }
 
+  // rate limit guard for Codeforces API calls
   private static async rateLimitGuard(): Promise<void> {
     const now = Date.now();
     const timeSinceLastCall = now - this.lastApiCallTimestamp;
@@ -55,6 +58,7 @@ class CodeforcesProfileSyncService {
     this.lastApiCallTimestamp = Date.now();
   }
 
+  // retry mechanism for Codeforces API calls
   private static async apiGetWithRetry(url: string, retries = 3): Promise<any> {
     for (let attempt = 1; attempt <= retries; attempt++) {
       // Wait BEFORE making the request.
@@ -87,8 +91,9 @@ class CodeforcesProfileSyncService {
     return this.apiGetWithRetry(`/user.rating?handle=${handle}`);
   }
 
+  // to fetch contest problems
   private static async fetchContestProblems(contestId: number): Promise<any[]> {
-    if (this.contestProblemCache.has(contestId)) {
+    if (this.contestProblemCache.has(contestId)) {// check cache
       logger.debug(`Cache HIT for contest problems: ${contestId}`);
       return this.contestProblemCache.get(contestId)!;
     }
@@ -101,6 +106,7 @@ class CodeforcesProfileSyncService {
     return problems;
   }
 
+  // save submissions to db
   private static async saveSubmissions(submissions: any[], student: IStudent): Promise<Date | null> {
     const lastTime = student.lastSubmissionTime || new Date(0);
 
@@ -137,10 +143,11 @@ class CodeforcesProfileSyncService {
     return null;
   }
 
+  // save contests to db
   private static async saveContests(contests: any[], student: IStudent, allSubmissions: any[]): Promise<Date | null> {
     const lastTime = student.lastContestTime || new Date(0);
 
-    const newContests = contests.filter(c => new Date(c.ratingUpdateTimeSeconds * 1000) > lastTime);
+    const newContests = contests.filter(c => new Date(c.ratingUpdateTimeSeconds * 1000) > lastTime);// filter out contests before lastTime to avoid duplicates
 
     if (newContests.length === 0) {
       return null;
@@ -191,37 +198,38 @@ class CodeforcesProfileSyncService {
     return null;
   }
 
+  // sync all profiles
   static async syncAllProfiles(studentIds: mongoose.Types.ObjectId[]): Promise<{ totalStudents: number; successCount: number; errorCount: number; failedIds: { id: mongoose.Types.ObjectId, reason: string }[]; emailStats?: { emailsSent: number; emailsFailed: number; inactiveCount: number } }> {
-    if (!this.checkCanSyncAllProfiles()) {
+    if (!this.checkCanSyncAllProfiles()) {// check if sync is allowed
       throw new Error('Please wait! A full profile sync was performed recently. To avoid overwhelming the Codeforces API, you can sync again after 6 hours.');
     }
     let successCount = 0;
     const failedSyncs: { id: mongoose.Types.ObjectId; reason: string }[] = [];
     const totalStudents = studentIds.length;
 
-    logger.info(`🔄 Starting STRICTLY SEQUENTIAL sync for ${totalStudents} students to ensure 100% reliability.`);
+    logger.info(`Starting STRICTLY SEQUENTIAL sync for ${totalStudents} students to ensure 100% reliability.`);
 
     let studentIndex = 1;
-    for (const studentId of studentIds) {
+    for (const studentId of studentIds) {// sequential sync
       logger.info(`--- Processing student ${studentIndex}/${totalStudents} (ID: ${studentId}) ---`);
       try {
         const result = await this.syncSingleProfile(studentId);
         if (result.success) {
           successCount++;
-          logger.info(`✅ Successfully synced student ${studentIndex}/${totalStudents}`);
+          logger.info(`Successfully synced student ${studentIndex}/${totalStudents}`);
         } else {
           failedSyncs.push({ id: studentId, reason: result.reason || 'Unknown reason' });
-          logger.warn(`⚠️ Failed to sync student ${studentIndex}/${totalStudents}. Reason: ${result.reason}`);
+          logger.warn(`Failed to sync student ${studentIndex}/${totalStudents}. Reason: ${result.reason}`);
         }
       } catch (error) {
         const errorMessage = getValidErrorMessage(error);
         failedSyncs.push({ id: studentId, reason: errorMessage });
-        logger.error(`❌ Unhandled exception for student ${studentIndex}/${totalStudents}: ${errorMessage}`);
+        logger.error(`Unhandled exception for student ${studentIndex}/${totalStudents}: ${errorMessage}`);
       }
       studentIndex++;
     }
 
-    const successRate = totalStudents > 0 ? Math.round((successCount / totalStudents) * 100) : 0;
+    const successRate = totalStudents > 0 ? Math.round((successCount / totalStudents) * 100) : 0;// calculate success rate
     logger.info(`🎉 Sync completed! Total: ${totalStudents}, Success: ${successCount} (${successRate}%), Errors: ${failedSyncs.length}`);
     if (failedSyncs.length > 0) {
       logger.warn(`Failed Student IDs and reasons: ${JSON.stringify(failedSyncs)}`);
@@ -236,6 +244,7 @@ class CodeforcesProfileSyncService {
     return { totalStudents, successCount, errorCount: failedSyncs.length, failedIds: failedSyncs };
   }
 
+  // sync a single profile
   static async syncSingleProfile(studentId: mongoose.Types.ObjectId): Promise<{ success: boolean; reason?: string }> {
     const student = await Student.findById(studentId);
     if (!student?.codeforcesHandle) {
@@ -243,12 +252,13 @@ class CodeforcesProfileSyncService {
     }
 
     try {
+      // Fetch submissions and contests
       const submissions = await this.fetchSubmissions(student.codeforcesHandle);
       const contests = await this.fetchContests(student.codeforcesHandle);
 
       logger.info(`Fetched ${submissions.length} submissions and ${contests.length} contests for student ${student.codeforcesHandle}`);
 
-      const [updatedSubmissionTime, updatedContestTime] = await Promise.all([
+      const [updatedSubmissionTime, updatedContestTime] = await Promise.all([// parallel processing of submission and contest saving
         this.saveSubmissions(submissions, student),
         this.saveContests(contests, student, submissions),
       ]);
@@ -261,6 +271,7 @@ class CodeforcesProfileSyncService {
         updateData.lastContestTime = updatedContestTime;
       }
 
+      // codeforces inactivity check and email notification
       const inactivityServiceHandler = async () => {
         try {
           await inactivityService.checkAndNotifyInactiveStudents(studentId);
@@ -277,8 +288,9 @@ class CodeforcesProfileSyncService {
           student.rating || 1200
         ),
         Student.findByIdAndUpdate(studentId, { $set: updateData }),
-        inactivityServiceHandler()
       ]);
+
+      await inactivityServiceHandler();
 
       return { success: true };
 

@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import api from '../../plugins/axios';
+import { CodeforcesUser, EditStudentModalProps, FormData } from '../../types/student.types';
+import { fetchCodeforcesData, validateForm } from '../../utils/addAndEdit.utils';
 import {
   Modal,
   ModalContent,
@@ -22,12 +26,6 @@ import {
   AlertCircle,
   Star
 } from 'lucide-react';
-import { toast } from 'sonner';
-import api from '../../plugins/axios';
-import { CodeforcesUser, EditStudentModalProps, FormData } from '../../types/student.types';
-import { fetchCodeforcesData, validateForm } from '../../utils/addAndEdit.utils';
-
-
 
 const EditStudentModal: React.FC<EditStudentModalProps> = ({
   isOpen,
@@ -48,22 +46,8 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
     codeforcesHandle: ''
   });
 
-  useEffect(() => {
-    if (student && isOpen) {
-      setFormData({
-        name: student.name,
-        email: student.email,
-        phoneNumber: student.phoneNumber,
-        codeforcesHandle: student.codeforcesHandle
-      });
-      setFormError('');
-      setIsSubmitting(false);
-      setCodeforcesData(null);
-    }
-  }, [student, isOpen]);
-
   const handleInputChange = (field: string, value: string) => {
-    console.log(`Field: ${field}, Value: ${value}`);
+    // console.log(`Field: ${field}, Value: ${value}`);
     setFormData(prev => ({ ...prev, [field]: value }));
     if (formError) setFormError('');
   };
@@ -92,6 +76,20 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (student && isOpen) {
+      setFormData({
+        name: student.name,
+        email: student.email,
+        phoneNumber: student.phoneNumber,
+        codeforcesHandle: student.codeforcesHandle
+      });
+      setFormError('');
+      setIsSubmitting(false);
+      setCodeforcesData(null);
+    }
+  }, [student, isOpen]);
 
   return (
     <Modal

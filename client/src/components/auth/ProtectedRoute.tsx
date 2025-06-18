@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  redirectPath = '/signin'
+  redirectPath = '/login'
 }) => {
   const { isAuthenticated, loading } = useAuth();
 
