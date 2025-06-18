@@ -4,7 +4,7 @@ A comprehensive web application for tracking and managing competitive programmin
 
 ## Live Demo
 
-**Live Application:** [https://spms-tle.vercel.app](https://spms-tle.vercel.app)
+**Live Application:** [https://spms-by-tle.vercel.app](https://spms-by-tle.vercel.app)
 
 **Video Demo:** [Watch Full Demo](https://youtu.be/demo-video-link)
 
