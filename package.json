@@ -25,6 +25,7 @@
   "homepage": "https://github.com/devendrasuryavanshi/SPMS#readme",
   "description": "",
   "devDependencies": {
+    "@types/node": "^24.0.3",
     "concurrently": "^9.1.2"
   }
 }

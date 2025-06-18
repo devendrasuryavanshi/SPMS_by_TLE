@@ -51,9 +51,9 @@ export const register = async (req: Request, res: Response) => {
     // auth cookie
     res.cookie('token', token, {
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      sameSite: 'none',
       maxAge,
-      secure: process.env.NODE_ENV === 'production'
+      secure: true
     });
 
     res.status(201).json({
@@ -112,9 +112,9 @@ export const login = async (req: Request, res: Response) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      sameSite: 'none',
       maxAge,
-      secure: process.env.NODE_ENV === 'production'
+      secure: true
     });
 
     res.status(200).json({
