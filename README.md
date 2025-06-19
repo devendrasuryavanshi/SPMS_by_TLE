@@ -6,7 +6,7 @@ A comprehensive web application for tracking and managing competitive programmin
 
 **Live Application:** [https://spms-by-tle.vercel.app](https://spms-by-tle.vercel.app)
 
-**Video Demo:** [Watch Full Demo](https://youtu.be/ySoGiyrKUp4)
+**Video Demo:** [Watch Full Demo](https://drive.google.com/file/d/17fy1loNoN4N1liWAdyQsnveelq0l0JnR/view?usp=sharing)
 
 ## Table of Contents
 
@@ -580,9 +580,9 @@ For support and questions:
 
 - **Email**: devendrasooryavanshee@gmail.com
 
-- **Documentation**: [https://github.com/devendrasuryavanshi/SPMS_by_TLE/blob/main/README.md](https://github.com/devendrasuryavanshi/SPMS_by_TLE/blob/main/README.md)
-- **Issues**: [GitHub Issues](https://github.com/devendrasuryavanshi/SPMS_by_TLE/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/devendrasuryavanshi/SPMS_by_TLE/discussions)
+- **Documentation**: [https://github.com/devendrasuryavanshi/Student-management-system-tle/blob/main/README.md](https://github.com/devendrasuryavanshi/Student-management-system-tle/blob/main/README.md)
+- **Issues**: [GitHub Issues](https://github.com/devendrasuryavanshi/Student-management-system-tle/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/devendrasuryavanshi/Student-management-system-tle/discussions)
 
 ## Acknowledgments
 
