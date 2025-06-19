@@ -39,7 +39,7 @@ const SyncingInProgress: React.FC<SyncingInProgressProps> = ({ avatarUrl, name }
       </div>
 
       {/* Animated Text */}
-      <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary dark:from-primary-dark dark:via-secondary-dark dark:to-tertiary-dark animate-gradient-x">
+      <h2 className="text-2xl font-bold bg-clip-text text-blue-500 dark:text-blue-500">
         Preparing Profile
       </h2>
       <p className="mt-2 text-md text-secondary dark:text-secondary-dark">

@@ -69,7 +69,10 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ student }) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: '2-digit'
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     });
   };
 
