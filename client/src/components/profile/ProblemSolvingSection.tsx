@@ -464,7 +464,7 @@ const ProblemSolvingSection: React.FC<ProblemSolvingSectionProps> = ({
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Rating Distribution Bar Chart */}
-        <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Card className="border bg-surface dark:bg-surface-darkbg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
@@ -522,7 +522,7 @@ const ProblemSolvingSection: React.FC<ProblemSolvingSectionProps> = ({
         </Card>
 
         {/* Tag Distribution Pie Chart */}
-        <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Card className="border bg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
@@ -581,7 +581,7 @@ const ProblemSolvingSection: React.FC<ProblemSolvingSectionProps> = ({
       </div>
 
       {/* Submission Heatmap */}
-      <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
+      <Card className="border bg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary dark:text-primary-dark" />
@@ -640,7 +640,7 @@ const ProblemSolvingSection: React.FC<ProblemSolvingSectionProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
       >
-        <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Card className="border bg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">

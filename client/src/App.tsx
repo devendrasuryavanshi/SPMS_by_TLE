@@ -15,7 +15,7 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex flex-col min-h-screen bg-background dark:bg-background-dark transition-colors duration-300">
+        <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/5 via-background to-tertiary/5 dark:from-primary-dark/5 dark:via-background-dark dark:to-tertiary-dark/5 transition-colors duration-300">
           <Navbar />
           <main className="flex-grow">
             <Routes>

@@ -51,23 +51,23 @@ const config = {
 
         // Dark theme variants
         "primary-dark": {
-          DEFAULT: "#60A5FA", // Neon Blue Glow
-          foreground: "#0F172A",
+          DEFAULT: "#3B82F6", // Cobalt Blue
+          foreground: "#0F0F0F", // Jet Black
         },
         "secondary-dark": {
-          DEFAULT: "#94A3B8", // Slate Steel
-          foreground: "#0F172A",
+          DEFAULT: "#64748B", // Steel Gray
+          foreground: "#0F0F0F",
         },
         "tertiary-dark": {
-          DEFAULT: "#22C55E", // Toxic Green
-          foreground: "#0F172A",
+          DEFAULT: "#60A5FA", // Sky Neon Blue
+          foreground: "#0F0F0F",
         },
-        "background-dark": "#0F172A", // Deep Navy
-        "surface-dark": "#1E293B", // Graphite Gray
-        "text-primary-dark": "#F1F5F9", // Arctic White
+        "background-dark": "#0B0D0F", // Stealth Black
+        "surface-dark": "#181A20", // Raven Black
+        "text-primary-dark": "#E5E7EB", // Pale Gray
         "accent-dark": {
-          DEFAULT: "#A78BFA", // Vivid Violet
-          foreground: "#0F172A",
+          DEFAULT: "#6366F1", // Indigo Glow (Bluish Accent)
+          foreground: "#0F0F0F",
         },
 
         // Shadcn/ui compatible colors

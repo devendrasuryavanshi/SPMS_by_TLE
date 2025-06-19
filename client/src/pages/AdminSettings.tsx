@@ -207,7 +207,7 @@ const AdminSettings: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-background-dark py-4 sm:py-8">
+    <div className="min-h-screen py-4 sm:py-8">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Header */}
         <motion.div
@@ -462,11 +462,11 @@ const AdminSettings: React.FC = () => {
                     />
 
                     {/* Help Text */}
-                    <div className="mt-3 p-4 bg-primary/5 dark:bg-primary-dark/5 border border-primary/10 dark:border-primary-dark/10 rounded-xl">
+                    <div className="mt-3 p-4 bg-background dark:bg-background-dark border border-primary/10 dark:border-primary-dark/10 rounded-xl">
                       <p className="text-sm font-medium text-primary dark:text-primary-dark mb-2">
                         Supported Schedule Formats:
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-primary/80 dark:text-primary-dark/80">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                         <div>• "every day at 2am" - Daily at 2:00 AM</div>
                         <div>• "every weekday at 6:30pm" - Mon-Fri at 6:30 PM</div>
                         <div>• "every weekend at 10am" - Sat-Sun at 10:00 AM</div>
@@ -583,14 +583,14 @@ const AdminSettings: React.FC = () => {
                 </CardHeader>
                 <Divider className="bg-secondary/20 dark:bg-secondary-dark/20" />
                 <CardBody className="py-6">
-                  <div className="p-4 bg-primary/5 dark:bg-primary-dark/5 border border-primary/10 dark:border-primary-dark/10 rounded-xl">
+                  <div className="p-4 bg-background dark:bg-background-dark border border-primary/10 dark:border-primary-dark/10 rounded-xl">
                     <div className="flex items-start gap-3">
                       <Database className="w-5 h-5 text-primary dark:text-primary-dark mt-0.5 flex-shrink-0" />
                       <div className="space-y-2">
                         <p className="text-sm font-medium text-primary dark:text-primary-dark">
                           How Data Synchronization Works
                         </p>
-                        <div className="text-xs text-primary/80 dark:text-primary-dark/80 leading-relaxed space-y-1">
+                        <div className="text-xs leading-relaxed space-y-1">
                           <p>
                             • <strong>Automated Sync:</strong> Runs based on your configured
                             schedule to keep data current

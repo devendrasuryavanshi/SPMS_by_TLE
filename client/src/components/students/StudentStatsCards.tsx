@@ -65,7 +65,7 @@ const StudentStatsCards: React.FC<StudentStatsCardsProps> = ({ students, totalCo
     >
       {stats.map((stat, index) => (
         <motion.div key={index} variants={itemVariants}>
-          <Card className="border border-secondary/10 dark:border-secondary-dark/10">
+          <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
             <CardBody className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-xl flex items-center justify-center`}>

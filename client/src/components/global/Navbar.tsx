@@ -69,7 +69,7 @@ const NavbarComponent = () => {
           <NavbarItem key={index} isActive={isActive(item.href)}>
             <Link
               href={item.href}
-              className={`flex items-center gap-2 text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors ${isActive(item.href) ? "font-medium text-primary dark:text-primary-dark" : ""
+              className={`flex items-center gap-2 text-secondary dark:text-white hover:text-primary dark:hover:text-primary-dark transition-colors ${isActive(item.href) ? "font-medium text-primary dark:text-primary-dark" : ""
                 }`}
               aria-current={isActive(item.href) ? "page" : undefined}
             >

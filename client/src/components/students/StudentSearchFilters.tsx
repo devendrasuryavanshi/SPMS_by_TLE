@@ -33,7 +33,7 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
       <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark shadow-sm">
         <CardBody>
           <div className="flex flex-col gap-2">
-            <div className="flex flex-col lg:flex-row justify-between gap-4 items-start lg:items-center">
+            <div className="flex flex-col sm:flex-row justify-between gap-4 items-start lg:items-center">
               <div className="w-full lg:max-w-md">
                 <Input
                   className="w-full"
@@ -53,16 +53,6 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                           <X size={14} />
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        color="primary"
-                        variant="flat"
-                        className="h-7 px-4"
-                        radius="full"
-                        onClick={handleSearch}
-                      >
-                        Search
-                      </Button>
                     </div>
                   }
                   value={filterValue}
@@ -75,13 +65,13 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                   }}
                 />
               </div>
-              <div className="flex flex-wrap gap-3 w-full lg:w-auto justify-end">
+              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
                 <Button
                   color="success"
                   endContent={<Download size={16} />}
                   onClick={onExportCSV}
                   variant="flat"
-                  size="sm"
+                  size="md"
                   className="min-w-[120px]"
                 >
                   Export CSV
@@ -90,7 +80,7 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                   color="primary"
                   endContent={<Plus size={16} />}
                   onClick={onAddStudent}
-                  size="sm"
+                  size="md"
                   className="min-w-[120px]"
                 >
                   Add Student
@@ -114,7 +104,7 @@ const StudentSearchFilters: React.FC<StudentSearchFiltersProps> = ({
                     onSelectionChange={(keys) => setRowsPerPage(Number(Array.from(keys)[0]))}
                     classNames={{
                       trigger: "bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20",
-                      value: "text-default-500"
+                      value: "text-default-500",
                     }}
                   >
                     <SelectItem key="10" value="10">10</SelectItem>

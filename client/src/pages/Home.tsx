@@ -84,10 +84,10 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-background dark:bg-background-dark transition-colors duration-300">
+    <div className="min-h-screen w-full duration-300">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-tertiary/5 dark:from-primary-dark/5 dark:to-tertiary-dark/5"></div>
+        <div className="absolute inset-0"></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:pt-20 lg:pt-28 relative z-10">
           <div className="text-center">
             <motion.div
@@ -121,7 +121,7 @@ const Home: React.FC = () => {
             </motion.p>
 
             <motion.div
-              className="flex flex-col xs:flex-row gap-4 justify-center items-center mb-12 2xl:flex-row 2xl:gap-6"
+              className="flex flex-wrap gap-4 justify-center items-center mb-12 2xl:flex-row 2xl:gap-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
@@ -138,9 +138,9 @@ const Home: React.FC = () => {
                 size="lg"
                 variant="bordered"
                 className="border-2 border-primary dark:border-primary-dark text-primary dark:text-primary-dark font-semibold rounded-full px-8 h-14 text-base w-64 xs:w-auto hover:bg-primary/5 dark:hover:bg-primary-dark/5 transition-colors"
-                onClick={() => navigate('/contest-tracker')}
+                onClick={() => navigate('/')}
               >
-                Explore Analytics
+                System Configuration
               </Button>
             </motion.div>
 
@@ -171,7 +171,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Core Features Section */}
-      <section className="py-16 sm:py-20 bg-surface dark:bg-surface-dark">
+      <section className="py-16 sm:py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="text-center mb-12"
@@ -198,7 +198,7 @@ const Home: React.FC = () => {
             {coreFeatures.map((feature, index) => (
               <motion.div
                 key={index}
-                className="bg-background dark:bg-background-dark rounded-xl p-6 border border-secondary/10 dark:border-secondary-dark/10 hover:shadow-lg hover:shadow-primary/5 dark:hover:shadow-primary-dark/5 transition-all duration-300"
+                className="bg-surface dark:bg-surface-dark rounded-xl p-6 border border-secondary/10 dark:border-secondary-dark/10 hover:shadow-lg hover:shadow-primary/5 dark:hover:shadow-primary-dark/5 transition-all duration-300"
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
               >
@@ -214,7 +214,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Analytics Dashboard Preview */}
-      <section className="py-16 sm:py-20 bg-background dark:bg-background-dark relative overflow-hidden">
+      <section className="py-16 sm:py-20  relative overflow-hidden">
         <div className="absolute top-1/4 -right-32 w-64 h-64 bg-accent/10 dark:bg-accent-dark/10 rounded-full blur-3xl opacity-40"></div>
         <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-tertiary/10 dark:bg-tertiary-dark/10 rounded-full blur-3xl opacity-30"></div>
 
@@ -325,7 +325,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-16 sm:py-20 bg-gradient-to-br from-primary/5 via-background to-tertiary/5 dark:from-primary-dark/5 dark:via-background-dark dark:to-tertiary-dark/5">
+      <section className="py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -350,15 +350,15 @@ const Home: React.FC = () => {
                 size="lg"
                 className="bg-black text-white font-semibold rounded-full px-8 h-14 text-base w-64 xs:w-auto hover:bg-gray-800 transition-colors"
                 endContent={<ArrowRight className="ml-1" size={18} />}
-                onClick={() => navigate('/register')}
+                onClick={() => navigate('/login')}
               >
                 Start Free Trial
               </Button>
               <Button
                 size="lg"
                 variant="bordered"
-                className="border-2 border-secondary dark:border-secondary-dark text-secondary dark:text-secondary-dark font-semibold rounded-full px-8 h-14 text-base hover:bg-secondary/5 dark:hover:bg-secondary-dark/5 w-64 xs:w-auto transition-colors"
-                onClick={() => navigate('/demo')}
+                className="border-2 border-primary dark:border-primary-dark text-secondary dark:text-secondary-dark font-semibold rounded-full px-8 h-14 text-base hover:bg-secondary/5 dark:hover:bg-secondary-dark/5 w-64 xs:w-auto transition-colors"
+                onClick={() => navigate('/students')}
               >
                 Watch Demo
               </Button>

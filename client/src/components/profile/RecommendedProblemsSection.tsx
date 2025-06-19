@@ -261,7 +261,7 @@ const RecommendedProblemsSection: React.FC<RecommendedProblemsSectionProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Card className="border bg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10 bg-gradient-to-br from-surface to-surface/50 dark:from-surface-dark dark:to-surface-dark/50 shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">

@@ -26,7 +26,7 @@ import {
   Award,
   BarChart3,
   MoveUpRight,
-  MoveDownLeft
+  MoveDownRight
 } from 'lucide-react';
 
 interface Contest {
@@ -295,7 +295,7 @@ const ContestHistorySection: React.FC<ContestHistorySectionProps> = ({ studentId
                     color: theme === 'dark' ? '#27272A' : '#E4E4E7'
                   }
                 },
-                colors: ["#4000BF"],
+                colors: ["#3b82f6"],
                 pointSize: 5,
                 lineWidth: 2,
                 chartArea: {
@@ -304,7 +304,8 @@ const ContestHistorySection: React.FC<ContestHistorySectionProps> = ({ studentId
                 tooltip: {
                   textStyle: {
                     color: theme === 'dark' ? '#333333' : '#27272A'
-                  }
+                  },
+                  backgroundColor: theme === 'dark' ? '#000000' : '#FFFFFF'
                 }
               }}
             />
@@ -328,7 +329,7 @@ const ContestHistorySection: React.FC<ContestHistorySectionProps> = ({ studentId
             <Table
               aria-label="Contest history table"
               classNames={{
-                wrapper: "shadow-none",
+                wrapper: "shadow-none bg-surface dark:bg-surface-dark",
                 th: "bg-background dark:bg-background-dark text-xs font-semibold",
                 td: "py-3"
               }}
@@ -341,7 +342,7 @@ const ContestHistorySection: React.FC<ContestHistorySectionProps> = ({ studentId
                 <TableColumn>SOLVED</TableColumn>
                 <TableColumn>UNSOLVED</TableColumn>
               </TableHeader>
-              <TableBody>
+              <TableBody className='bg-surface dark:bg-surface-dark'>
                 {data.contests.slice(0, 10).map((contest) => (
                   <TableRow key={contest.contestId}>
                     <TableCell>
@@ -373,7 +374,7 @@ const ContestHistorySection: React.FC<ContestHistorySectionProps> = ({ studentId
                         {contest.ratingChange > 0 ? (
                           <MoveUpRight className="w-3 h-3 text-success" />
                         ) : contest.ratingChange < 0 ? (
-                          <MoveDownLeft className="w-3 h-3 text-danger" />
+                          <MoveDownRight className="w-3 h-3 text-danger" />
                         ) : null}
                         <span className={`text-sm font-semibold ${contest.ratingChange > 0 ? 'text-success' :
                           contest.ratingChange < 0 ? 'text-danger' :

@@ -78,7 +78,7 @@ body {
 
 /* Optional: Dark mode adjustments */
 .dark .react-calendar-heatmap .color-empty {
-  fill: #161b22; /* Darker gray for empty days in dark mode */
+  fill: #111111; /* Darker gray for empty days in dark mode */
 }
 
 .dark .react-calendar-heatmap .color-scale-1 {

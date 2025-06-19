@@ -90,13 +90,13 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
       scrollBehavior="inside"
       classNames={{
         base: "max-h-[90vh]",
-        body: "p-0",
+        body: "p-0 bg-surface dark:bg-surface-dark",
       }}
     >
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex items-center justify-between p-6 border-b border-secondary/10 dark:border-secondary-dark/10">
+            <ModalHeader className="flex items-center justify-between p-6 border-b border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary/10 dark:bg-primary-dark/10 rounded-xl flex items-center justify-center">
                   <UserPlus className="w-5 h-5 text-primary dark:text-primary-dark" />
@@ -116,7 +116,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Form */}
                 <div className="lg:col-span-2">
-                  <Card className="border border-secondary/10 dark:border-secondary-dark/10">
+                  <Card className="border bg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10">
                     <CardHeader className="pb-4">
                       <h3 className="text-lg font-semibold text-text-primary dark:text-text-primary-dark">
                         Student Information
@@ -180,38 +180,44 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
                           }}
                         />
 
-                        <div className="flex gap-2">
-                          <Input
-                            type="text"
-                            label="Codeforces Handle"
-                            placeholder="Enter Codeforces username"
-                            value={formData.codeforcesHandle}
-                            onChange={(e) => handleInputChange('codeforcesHandle', e.target.value)}
-                            startContent={<Code className="w-4 h-4 text-secondary dark:text-secondary-dark" />}
-                            isRequired
-                            size="md"
-                            classNames={{
-                              label: "text-secondary dark:text-secondary-dark font-medium",
-                              input: "text-text-primary dark:text-text-primary-dark",
-                              inputWrapper: "bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20 hover:border-primary/40 dark:hover:border-primary-dark/40 focus-within:border-primary dark:focus-within:border-primary-dark transition-colors"
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            onPress={() => fetchCodeforcesData({
-                              formData,
-                              setFormData,
-                              setIsFetching,
-                              setCodeforcesData
-                            })}
-                            isLoading={isFetching}
-                            variant="flat"
-                            className="bg-tertiary dark:bg-tertiary-dark text-white font-bold h-[53px] rounded-xl hover:bg-tertiary/80 dark:hover:bg-tertiary-dark/80 transition-colors w-32"
-                            startContent={!isFetching && <Download className="w-4 h-4" />}
-                          >
-                            {isFetching ? 'Fetching...' : 'Fetch'}
-                          </Button>
-                        </div>
+                        <Input
+                          type="text"
+                          label="Codeforces Handle"
+                          placeholder="Enter Codeforces username"
+                          value={formData.codeforcesHandle}
+                          onChange={(e) => handleInputChange('codeforcesHandle', e.target.value)}
+                          startContent={<Code className="w-4 h-4 text-secondary dark:text-secondary-dark" />}
+                          endContent={
+                            <Button
+                              type="button"
+                              onPress={() =>
+                                fetchCodeforcesData({
+                                  formData,
+                                  setFormData,
+                                  setIsFetching,
+                                  setCodeforcesData,
+                                })
+                              }
+                              radius="lg"
+                              isLoading={isFetching}
+                              color="secondary"
+                              variant="flat"
+                              size="sm"
+                              className="bg-tertiary text-white font-bold hover:bg-tertiary/80 transition-colors px-3 py-1 h-8 rounded-md"
+                              startContent={!isFetching && <Download className="w-4 h-4" />}
+                            >
+                              {!isFetching && 'Fetch'}
+                            </Button>
+                          }
+                          isRequired
+                          size="md"
+                          classNames={{
+                            label: "text-secondary dark:text-secondary-dark font-medium",
+                            input: "text-text-primary dark:text-text-primary-dark",
+                            inputWrapper:
+                              "bg-background dark:bg-background-dark border border-secondary/20 dark:border-secondary-dark/20 hover:border-primary/40 dark:hover:border-primary-dark/40 focus-within:border-primary dark:focus-within:border-primary-dark transition-colors",
+                          }}
+                        />
                       </form>
                     </CardBody>
                   </Card>
@@ -220,7 +226,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
                 {/* Sidebar - Codeforces Data */}
                 <div className="lg:col-span-1">
                   {codeforcesData ? (
-                    <Card className="border border-secondary/10 dark:border-secondary-dark/10">
+                    <Card className="border bg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10">
                       <CardHeader className="pb-4">
                         <div className="flex items-center gap-2">
                           <Code className="w-4 h-4 text-success" />
@@ -323,7 +329,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
               </div>
             </ModalBody>
 
-            <ModalFooter className="border-t border-secondary/10 dark:border-secondary-dark/10 p-6">
+            <ModalFooter className="border-t bg-surface dark:bg-surface-dark border-secondary/10 dark:border-secondary-dark/10 p-6">
               <Button
                 variant="light"
                 onPress={onClose}

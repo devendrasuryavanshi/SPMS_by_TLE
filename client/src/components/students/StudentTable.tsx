@@ -128,7 +128,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
               </div>
             )}
             <div className="flex flex-col">
-              <p className="text-sm font-semibold text-text-primary dark:text-text-primary-dark truncate">
+              <p className="truncate w-36 text-sm font-semibold text-text-primary dark:text-text-primary-dark">
                 {student.name}
               </p>
             </div>
@@ -211,13 +211,13 @@ const StudentTable: React.FC<StudentTableProps> = ({
       case "actions":
         return (
           <div className="relative flex justify-center items-center">
-            <Dropdown>
+            <Dropdown className='bg-surface dark:bg-surface-dark border-none shadow-none outline-none ring-0'>
               <DropdownTrigger>
                 <Button isIconOnly size="sm" variant="light">
                   <MoreVertical className="text-default-400" size={16} />
                 </Button>
               </DropdownTrigger>
-              <DropdownMenu>
+              <DropdownMenu className="bg-surface dark:bg-surface-dark border-none shadow-none outline-none ring-0">
                 <DropdownItem
                   key="view"
                   startContent={<Eye size={16} />}
@@ -263,7 +263,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
             aria-label="Students table with custom cells and sorting"
             isHeaderSticky
             classNames={{
-              wrapper: "overflow-x-auto overflow-y-visible min-h-[400px]",
+              wrapper: "overflow-x-auto overflow-y-visible min-h-[400px] bg-surface dark:bg-surface-dark",
               table: "table-fixed min-w-[1200px] w-full",
               thead: "[&>tr]:first:shadow-none",
               tbody: "overflow-visible",
@@ -277,7 +277,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                   key={column.uid}
                   align={column.uid === "actions" ? "center" : "start"}
                   allowsSorting={column.sortable}
-                  className="bg-default-100 dark:bg-[#070c17] flex-row"
+                  className="bg-default-100 dark:bg-[#040810] flex-row"
                   width={
                     column.uid === "name" ? 200 :
                       column.uid === "email" ? 220 :
