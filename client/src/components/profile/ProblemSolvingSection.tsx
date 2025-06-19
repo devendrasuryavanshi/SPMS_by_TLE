@@ -596,7 +596,6 @@ const ProblemSolvingSection: React.FC<ProblemSolvingSectionProps> = ({
             <div className="flex items-center justify-between">
               <p className="text-sm text-secondary dark:text-secondary-dark">
                 Daily submission activity for the last {selectedDays} days
-                (displayed on a 365-day calendar)
               </p>
               <div className="flex items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
                 <span>Less</span>

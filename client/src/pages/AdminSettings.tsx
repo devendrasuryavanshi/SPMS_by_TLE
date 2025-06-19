@@ -476,7 +476,7 @@ const AdminSettings: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 h-32 md:h-auto">
                     <Button
                       color="primary"
                       size="lg"
