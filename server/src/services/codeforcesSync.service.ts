@@ -12,28 +12,34 @@ const inactivityService = new InactivityDetectionService();
 
 // valid error messages
 const getValidErrorMessage = (error: any): string => {
-  let errorMessage = 'Unknown error';
-  if (error.message) errorMessage = error.message;
-  else if (error.response?.data) errorMessage = JSON.stringify(error.response.data);
-  else if (typeof error === 'string') errorMessage = error;
-  else errorMessage = String(error);
-
-  return errorMessage;
+  if (error instanceof AxiosError) {
+    if (error.response?.data?.comment) return `Codeforces API Error: ${error.response.data.comment}`;
+    if (error.response?.data) return JSON.stringify(error.response.data);
+    if (error.code === 'ECONNABORTED') return 'API request timed out.';
+  }
+  if (error instanceof Error) return error.message;
+  return String(error);
 };
 
 // axios instance for Codeforces API
 const codeforcesApi = axios.create({
   baseURL: 'https://codeforces.com/api',
-  timeout: 20000,
+  timeout: 30000,
   headers: {
     'User-Agent': 'SPMS/1.0 (spms@gmail.com)'
   }
 });
 
 class CodeforcesProfileSyncService {
-  private static readonly RATE_LIMIT_DELAY_MS = 2000;
+  // CONFIGURATION
+  private static readonly RATE_LIMIT_DELAY_MS = 2000; // 2 seconds between calls
+  private static readonly SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+  private static readonly SUBMISSION_PAGE_SIZE = 200; // Fetch submissions in chunks of 200
+  private static readonly MAX_CONCURRENT_SYNCS = 5; // Sync up to 5 students in parallel
+  private static readonly MAX_DATA_AGE_DAYS = 365; // 1 year
+
+  // STATE
   private static lastApiCallTimestamp = 0;
-  private static SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000;
   private static contestProblemCache = new Map<number, any[]>();
 
   private static async checkCanSyncAllProfiles(): Promise<boolean> {// check if the last sync was more than 6 hours ago
@@ -59,34 +65,97 @@ class CodeforcesProfileSyncService {
   }
 
   // retry mechanism for Codeforces API calls
-  private static async apiGetWithRetry(url: string, retries = 3): Promise<any> {
+  private static async apiGetWithRetry(url: string, retries = 3, backoff = 3000): Promise<any> {
     for (let attempt = 1; attempt <= retries; attempt++) {
-      // Wait BEFORE making the request.
       await this.rateLimitGuard();
-
       try {
-        logger.info(`Attempt ${attempt}: Calling API -> ${url}`);
+        logger.info(`[Attempt ${attempt}/${retries}] Calling API -> ${url}`);
         const res = await codeforcesApi.get(url);
         if (res.data.status !== 'OK') {
           throw new Error(`Codeforces API Error: ${res.data.comment}`);
         }
         return res.data.result;
-      } catch (err: any) {
-        const status = (err as AxiosError).response?.status;
+      } catch (error: any) {
+        const axiosError = error as AxiosError;
+        const errorMessage = getValidErrorMessage(error);
+        const status = axiosError.response?.status;
+        logger.warn(`API call failed (Status: ${status}): ${errorMessage}`);
 
         if (attempt === retries || status === 404 || status === 403) {
-          throw err;
+          logger.error(`Giving up on ${url} after ${attempt} attempts.`);
+          throw error;
         }
 
-        logger.warn(`API call failed (Status: ${status}). Retrying after a short delay...`);
-        await new Promise(r => setTimeout(r, 3000));
+        // If the error is 429 (Too Many Requests), wait for a much longer time
+        let waitTime = backoff;
+        if (status === 429) {
+          const retryAfterSeconds = axiosError.response?.headers['retry-after'];
+          if (retryAfterSeconds) {
+            waitTime = parseInt(retryAfterSeconds, 10) * 1000 + 500; // header + buffer
+            logger.warn(`Honoring 'Retry-After' header. Waiting for ${waitTime / 1000}s.`);
+          } else {
+            waitTime = 10000; // long wait for 429 status
+            logger.warn(`Received 429 (Too Many Requests). Applying a longer delay of ${waitTime / 1000}s.`);
+          }
+        }
+
+        logger.warn(`Retrying in ${waitTime / 1000}s...`);
+        await new Promise(r => setTimeout(r, waitTime));
+        backoff *= 2;
       }
     }
   }
 
-  private static async fetchSubmissions(handle: string) {
-    return this.apiGetWithRetry(`/user.status?handle=${handle}`);
+  // Fetches submissions in pages
+  private static async fetchNewSubmissions(handle: string, lastSubmissionTime: Date): Promise<any[]> {
+    const allNewSubmissions: any[] = [];
+    let from = 1;
+    let keepFetching = true;
+
+    const oneYearAgo = new Date();
+    oneYearAgo.setDate(oneYearAgo.getDate() - this.MAX_DATA_AGE_DAYS);
+
+    // The 365-day-ago cutoff
+    const syncCutoffDate = new Date(Math.max(
+      (lastSubmissionTime || new Date(0)).getTime(),
+      oneYearAgo.getTime()
+    ));
+    logger.info(`Fetching submissions for ${handle} created after ${syncCutoffDate.toISOString()}`);
+
+    while (keepFetching) {
+      const url = `/user.status?handle=${handle}&from=${from}&count=${this.SUBMISSION_PAGE_SIZE}`;
+      const submissionsPage = await this.apiGetWithRetry(url);
+
+      if (submissionsPage.length === 0) {
+        break; // No more submissions to fetch
+      }
+
+      const newSubmissionsInPage: any[] = [];
+      for (const sub of submissionsPage) {
+        const submissionDate = new Date(sub.creationTimeSeconds * 1000);
+        if (submissionDate > syncCutoffDate) {
+          newSubmissionsInPage.push(sub);
+        } else {
+          // older than our cutoff. Stop fetching
+          keepFetching = false;
+          break;
+        }
+      }
+
+      if (newSubmissionsInPage.length > 0) {
+        allNewSubmissions.push(...newSubmissionsInPage);
+      }
+
+      if (keepFetching && newSubmissionsInPage.length === submissionsPage.length) {
+        from += this.SUBMISSION_PAGE_SIZE;
+      } else {
+        keepFetching = false;
+      }
+    }
+    logger.info(`Fetched ${allNewSubmissions.length} new submissions for ${handle}.`);
+    return allNewSubmissions;
   }
+
   private static async fetchContests(handle: string) {
     return this.apiGetWithRetry(`/user.rating?handle=${handle}`);
   }
@@ -107,94 +176,79 @@ class CodeforcesProfileSyncService {
   }
 
   // save submissions to db
-  private static async saveSubmissions(submissions: any[], student: IStudent): Promise<Date | null> {
-    const lastTime = student.lastSubmissionTime || new Date(0);
+  private static async saveSubmissions(newSubmissions: any[], student: IStudent): Promise<Date | null> {
+    if (newSubmissions.length === 0) return null;
 
-    const newSubmissions = submissions
-      .filter(sub => new Date(sub.creationTimeSeconds * 1000) > lastTime)
-      .map(data => ({
-        studentId: student._id,
-        submissionId: data.id,
-        problemId: `${data.problem.contestId}-${data.problem.index}`,
-        problemIndex: data.problem.index,
-        problemName: data.problem.name,
-        problemRating: data.problem.rating || 0,
-        verdict: data.verdict,
-        submissionTime: new Date(data.creationTimeSeconds * 1000),
-        solved: data.verdict === 'OK',
-        tags: data.problem.tags || [],
-      }));
+    const submissionDocs = newSubmissions.map(data => ({
+      studentId: student._id,
+      submissionId: data.id,
+      problemId: `${data.problem.contestId}-${data.problem.index}`,
+      problemIndex: data.problem.index,
+      problemName: data.problem.name,
+      problemRating: data.problem.rating || 0,
+      verdict: data.verdict,
+      submissionTime: new Date(data.creationTimeSeconds * 1000),
+      solved: data.verdict === 'OK',
+      tags: data.problem.tags || [],
+    }));
 
-    if (newSubmissions.length > 0) {
-      try {
-        await Submission.insertMany(newSubmissions, { ordered: false });
-        return new Date(Math.max(...newSubmissions.map(s => s.submissionTime.getTime())));
-      } catch (error: any) {
-        // duplicate key errors if a submission was already inserted
-        if (error.code === 11000) {
-          logger.warn(`Duplicate key error during submission insert for student ${student.codeforcesHandle}, which is acceptable. Continuing.`);
-          // max time from the original array as a fallback
-          return new Date(Math.max(...newSubmissions.map(s => s.submissionTime.getTime())));
-        }
-        throw error;
-      }
+    try {
+      await Submission.insertMany(submissionDocs, { ordered: false });
+    } catch (error: any) {
+      if (error.code !== 11000) throw error;
+      logger.warn(`Duplicate key errors encountered for ${student.codeforcesHandle}, which is acceptable.`);
     }
-
-    return null;
+    return new Date(Math.max(...submissionDocs.map(s => s.submissionTime.getTime())));
   }
 
   // save contests to db
   private static async saveContests(contests: any[], student: IStudent, allSubmissions: any[]): Promise<Date | null> {
-    const lastTime = student.lastContestTime || new Date(0);
+    const oneYearAgo = new Date();
+    oneYearAgo.setDate(oneYearAgo.getDate() - this.MAX_DATA_AGE_DAYS);
 
-    const newContests = contests.filter(c => new Date(c.ratingUpdateTimeSeconds * 1000) > lastTime);// filter out contests before lastTime to avoid duplicates
+    // cutoff date for contests
+    const syncCutoffDate = new Date(Math.max(
+      (student.lastContestTime || new Date(0)).getTime(),
+      oneYearAgo.getTime()
+    ));
 
-    if (newContests.length === 0) {
-      return null;
-    }
+    // older than our cutoff
+    const newContests = contests.filter(c => new Date(c.ratingUpdateTimeSeconds * 1000) > syncCutoffDate);
+    if (newContests.length === 0) return null;
 
-    // lookup for solved problems for efficiency
     const solvedProblemIds = new Set(
-      allSubmissions
-        .filter(s => s.verdict === 'OK')
-        .map(s => `${s.problem.contestId}-${s.problem.index}`)
+      allSubmissions.filter(s => s.verdict === 'OK').map(s => `${s.problem.contestId}-${s.problem.index}`)
     );
 
-    const contestHistoryData = await Promise.all(newContests.map(async contest => {
+    const contestHistoryData: any[] = [];
+    logger.info(`Fetching details for ${newContests.length} new contests for ${student.codeforcesHandle} sequentially...`);
+    for (const contest of newContests) {
       const contestProblems = await this.fetchContestProblems(contest.contestId);
-      const totalProblems = contestProblems.length;
       const unsolvedCount = contestProblems.reduce((count, problem) =>
-        solvedProblemIds.has(`${contest.contestId}-${problem.index}`) ? count : count + 1,
-        0
-      );
+        solvedProblemIds.has(`${contest.contestId}-${problem.index}`) ? count : count + 1, 0);
 
-      return {
+      contestHistoryData.push({
         studentId: student._id,
         contestId: contest.contestId,
         contestName: contest.contestName,
-        oldRating: contest.oldRating,
-        newRating: contest.newRating,
+        oldRating: contest.oldRating, newRating: contest.newRating,
         ratingChange: contest.newRating - contest.oldRating,
         rank: contest.rank,
         contestTime: new Date(contest.ratingUpdateTimeSeconds * 1000),
-        totalProblems: totalProblems,
+        totalProblems: contestProblems.length,
         problemsUnsolvedCount: unsolvedCount,
-      };
-    }));
+      });
+    }
 
     if (contestHistoryData.length > 0) {
       try {
         await ContestHistory.insertMany(contestHistoryData, { ordered: false });
-        return new Date(Math.max(...contestHistoryData.map(c => c.contestTime.getTime())));
       } catch (error: any) {
-        if (error.code === 11000) {
-          logger.warn(`Duplicate key error during contest history insert for student ${student.codeforcesHandle}, which is acceptable. Continuing.`);
-          return new Date(Math.max(...contestHistoryData.map(c => c.contestTime.getTime())));
-        }
-        throw error;
+        if (error.code !== 11000) throw error;
+        logger.warn(`Duplicate key errors during contest insert for ${student.codeforcesHandle}, acceptable.`);
       }
+      return new Date(Math.max(...contestHistoryData.map(c => c.contestTime.getTime())));
     }
-
     return null;
   }
 
@@ -231,6 +285,7 @@ class CodeforcesProfileSyncService {
 
     const successRate = totalStudents > 0 ? Math.round((successCount / totalStudents) * 100) : 0;// calculate success rate
     logger.info(`🎉 Sync completed! Total: ${totalStudents}, Success: ${successCount} (${successRate}%), Errors: ${failedSyncs.length}`);
+
     if (failedSyncs.length > 0) {
       logger.warn(`Failed Student IDs and reasons: ${JSON.stringify(failedSyncs)}`);
     }
@@ -248,68 +303,57 @@ class CodeforcesProfileSyncService {
   static async syncSingleProfile(studentId: mongoose.Types.ObjectId): Promise<{ success: boolean; reason?: string }> {
     const student = await Student.findById(studentId);
     if (!student?.codeforcesHandle) {
-      return { success: false, reason: "Student has no Codeforces handle" };
+      return { success: false, reason: "Student record not found or has no Codeforces handle" };
     }
 
+    await Student.findByIdAndUpdate(studentId, { $set: { syncStatus: 'SYNCING' } });
+
     try {
-      // Fetch submissions and contests
-      const submissions = await this.fetchSubmissions(student.codeforcesHandle);
-      const contests = await this.fetchContests(student.codeforcesHandle);
+      // 1. Fetch only NEW submissions and ALL contests
+      const newSubmissions = await this.fetchNewSubmissions(student.codeforcesHandle, student.lastSubmissionTime || new Date(0));
+      const allContests = await this.fetchContests(student.codeforcesHandle);
 
-      logger.info(`Fetched ${submissions.length} submissions and ${contests.length} contests for student ${student.codeforcesHandle}`);
-
-      const [updatedSubmissionTime, updatedContestTime] = await Promise.all([// parallel processing of submission and contest saving
-        this.saveSubmissions(submissions, student),
-        this.saveContests(contests, student, submissions),
+      // 2. Save data to DB
+      const [updatedSubmissionTime, updatedContestTime] = await Promise.all([
+        this.saveSubmissions(newSubmissions, student),
+        this.saveContests(allContests, student, newSubmissions),
       ]);
 
+      // 3. Update student's sync timestamps
       const updateData: any = { lastDataSync: new Date() };
-      if (updatedSubmissionTime) {
-        updateData.lastSubmissionTime = updatedSubmissionTime;
-      }
-      if (updatedContestTime) {
-        updateData.lastContestTime = updatedContestTime;
-      }
+      if (updatedSubmissionTime) updateData.lastSubmissionTime = updatedSubmissionTime;
+      if (updatedContestTime) updateData.lastContestTime = updatedContestTime;
 
-      // codeforces inactivity check and email notification
-      const inactivityServiceHandler = async () => {
-        try {
-          await inactivityService.checkAndNotifyInactiveStudents(studentId);
-          logger.info(`Inactivity check completed for student ${student.codeforcesHandle}`);
-        } catch (emailError) {
-          logger.warn(`Inactivity email check failed for student ${student.codeforcesHandle}:`, emailError);
-        }
-      }
+      await Student.findByIdAndUpdate(studentId, { $set: updateData });
 
+      // 4. Trigger post-sync services asynchronously 
       await Promise.all([
-        RecommendationService.generateRecommendationsPostSync(
-          submissions,
-          studentId,
-          student.rating || 1200
-        ),
-        Student.findByIdAndUpdate(studentId, { $set: updateData }),
-      ]);
+        RecommendationService.generateRecommendationsPostSync(newSubmissions, studentId, student.rating || 1200),
+        inactivityService.checkAndNotifyInactiveStudents(studentId)
+      ]).catch(err => {
+        logger.error(`Post-sync task failed for student ${student.codeforcesHandle}: ${getValidErrorMessage(err)}`);
+      });
 
-      await inactivityServiceHandler();
+      await Student.findByIdAndUpdate(studentId, { $set: { syncStatus: 'SUCCEEDED', lastDataSync: new Date() } });
+
+      logger.info(`Successfully synced student ${student.codeforcesHandle}`);
 
       return { success: true };
 
     } catch (error: any) {
-      const axiosError = error as AxiosError;
-      const comment = (axiosError.response?.data as any)?.comment;
+      const errorMessage = getValidErrorMessage(error);
+      logger.error(`Failed to sync handle '${student.codeforcesHandle}': ${errorMessage}`);
 
-      if (axiosError.response?.status === 404 || (comment && comment.includes("not found"))) {
-        // student's profile as invalid to avoid future syncs.
-        await Student.findByIdAndUpdate(studentId, { $set: { syncStatus: 'INVALID_HANDLE' } });
+      if (errorMessage.includes("not found")) {
+        await Student.findByIdAndUpdate(studentId, { $set: { syncStatus: 'FAILED' } });
         return { success: false, reason: `Handle '${student.codeforcesHandle}' not found (404). Marked as invalid.` };
       }
-
-      if (axiosError.response?.status === 403) {
-        return { success: false, reason: `Access forbidden (403) for handle '${student.codeforcesHandle}'. Could be an IP flag or private profile.` };
+      if ((error as AxiosError).response?.status === 403) {
+        await Student.findByIdAndUpdate(studentId, { $set: { syncStatus: 'FAILED' } });
+        return { success: false, reason: `Access forbidden (403) for handle '${student.codeforcesHandle}'.` };
       }
-
-      const errorMessage = getValidErrorMessage(error);
-      return { success: false, reason: `A non-retryable error occurred: ${errorMessage}` };
+      await Student.findByIdAndUpdate(studentId, { $set: { syncStatus: 'FAILED' } });
+      return { success: false, reason: errorMessage };
     }
   }
 }

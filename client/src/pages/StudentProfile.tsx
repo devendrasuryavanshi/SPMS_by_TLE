@@ -31,33 +31,15 @@ import {
   BellOff,
   ExternalLink,
 } from 'lucide-react';
-
-interface Student {
-  _id: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  codeforcesHandle: string;
-  avatarUrl?: string;
-  rating: number;
-  maxRating: number;
-  rank: string;
-  country: string;
-  lastSubmissionTime: string;
-  lastContestTime: string;
-  lastDataSync: string;
-  inactivityEmailCount: number;
-  autoEmailEnabled: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { useStudentSync } from '../hooks/useStudentSync';
+import SyncingInProgress from './SyncingInProgress';
 
 const StudentProfile: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();
   const navigate = useNavigate();
+  const { student, isSyncing, setStudent } = useStudentSync(studentId);
 
   // State management
-  const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [activeSection, setActiveSection] = useState<'contests' | 'problems' | 'recommendations'>('contests');
@@ -289,215 +271,224 @@ const StudentProfile: React.FC = () => {
           </Card>
         </motion.div>
 
-        {/* Section Navigation */}
-        <motion.div
-          className="mb-4"
-          variants={itemVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <Card className="bg-transparent shadow-none border-none backdrop-blur-none">
-            <CardBody className="p-4 bg-transparent">
-              <div className="flex flex-col sm:flex-row gap-2">
-                {/* Contest History Button */}
-                <motion.div
-                  className="flex-1"
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                >
-                  <Button
-                    variant={activeSection === 'contests' ? 'solid' : 'light'}
-                    color={activeSection === 'contests' ? 'primary' : 'default'}
-                    startContent={<Trophy className="w-4 h-4" />}
-                    onClick={() => setActiveSection('contests')}
-                    className={`
+        {/* syncing */}
+        {isSyncing ? (
+          <div className="flex items-center justify-center w-full min-h-[60vh]">
+            <SyncingInProgress avatarUrl={student.avatarUrl} name={student.name} />
+          </div>
+        ) : (
+          <>
+            {/* Section Navigation */}
+            <motion.div
+              className="mb-4"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <Card className="bg-transparent shadow-none border-none backdrop-blur-none">
+                <CardBody className="p-4 bg-transparent">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Contest History Button */}
+                    <motion.div
+                      className="flex-1"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <Button
+                        variant={activeSection === 'contests' ? 'solid' : 'light'}
+                        color={activeSection === 'contests' ? 'primary' : 'default'}
+                        startContent={<Trophy className="w-4 h-4" />}
+                        onClick={() => setActiveSection('contests')}
+                        className={`
               w-full justify-start sm:justify-center transition-all duration-300
               ${activeSection === 'contests'
-                        ? 'shadow-lg shadow-primary/25'
-                        : 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                      }
+                            ? 'shadow-lg shadow-primary/25'
+                            : 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                          }
             `}
-                  >
-                    Contest History
-                  </Button>
-                </motion.div>
+                      >
+                        Contest History
+                      </Button>
+                    </motion.div>
 
-                {/* Problem Solving Button */}
-                <motion.div
-                  className="flex-1"
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                >
-                  <Button
-                    variant={activeSection === 'problems' ? 'solid' : 'light'}
-                    color={activeSection === 'problems' ? 'primary' : 'default'}
-                    startContent={<Code className="w-4 h-4" />}
-                    onClick={() => setActiveSection('problems')}
-                    className={`
+                    {/* Problem Solving Button */}
+                    <motion.div
+                      className="flex-1"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <Button
+                        variant={activeSection === 'problems' ? 'solid' : 'light'}
+                        color={activeSection === 'problems' ? 'primary' : 'default'}
+                        startContent={<Code className="w-4 h-4" />}
+                        onClick={() => setActiveSection('problems')}
+                        className={`
               w-full justify-start sm:justify-center transition-all duration-300
               ${activeSection === 'problems'
-                        ? 'shadow-lg shadow-primary/25'
-                        : 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                      }
-            `}
-                  >
-                    Problem Solving
-                  </Button>
-                </motion.div>
-
-                <motion.div
-                  className="flex-1 relative rounded-lg overflow-hidden"
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                >
-                  <motion.div
-                    className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-orange-500/30 blur-md -z-10"
-                    initial={{ opacity: 0 }}
-                    animate={activeSection === 'recommendations' ? {
-                      opacity: [0.3, 0.6, 0.3],
-                      scale: [0.95, 1.05, 0.95],
-                      transition: {
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }
-                    } : { opacity: 0, scale: 0.95 }}
-                    whileHover={{ opacity: 0.4, scale: 1.02 }}
-                  />
-
-                  {/* Main Button */}
-                  <Button
-                    variant={activeSection === 'recommendations' ? 'solid' : 'light'}
-                    color={activeSection === 'recommendations' ? 'primary' : 'default'}
-                    startContent={
-                      <motion.div
-                        animate={activeSection === 'recommendations' ? {
-                          rotate: [0, 360],
-                          scale: [1, 1.1, 1],
-                          transition: {
-                            rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                            scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                            ? 'shadow-lg shadow-primary/25'
+                            : 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800/50'
                           }
-                        } : { rotate: 0, scale: 1 }}
+            `}
                       >
-                        <Star className="w-4 h-4" />
-                      </motion.div>
-                    }
-                    onClick={() => setActiveSection('recommendations')}
-                    className={`
+                        Problem Solving
+                      </Button>
+                    </motion.div>
+
+                    <motion.div
+                      className="flex-1 relative rounded-lg overflow-hidden"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <motion.div
+                        className="absolute inset-0 rounded-lg bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-orange-500/30 blur-md -z-10"
+                        initial={{ opacity: 0 }}
+                        animate={activeSection === 'recommendations' ? {
+                          opacity: [0.3, 0.6, 0.3],
+                          scale: [0.95, 1.05, 0.95],
+                          transition: {
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }
+                        } : { opacity: 0, scale: 0.95 }}
+                        whileHover={{ opacity: 0.4, scale: 1.02 }}
+                      />
+
+                      {/* Main Button */}
+                      <Button
+                        variant={activeSection === 'recommendations' ? 'solid' : 'light'}
+                        color={activeSection === 'recommendations' ? 'primary' : 'default'}
+                        startContent={
+                          <motion.div
+                            animate={activeSection === 'recommendations' ? {
+                              rotate: [0, 360],
+                              scale: [1, 1.1, 1],
+                              transition: {
+                                rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+                                scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                              }
+                            } : { rotate: 0, scale: 1 }}
+                          >
+                            <Star className="w-4 h-4" />
+                          </motion.div>
+                        }
+                        onClick={() => setActiveSection('recommendations')}
+                        className={`
               relative z-10 w-full justify-start sm:justify-center transition-all duration-300
               ${activeSection === 'recommendations'
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-xl'
-                        : 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-purple-200 dark:hover:border-purple-800'
-                      }
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-xl'
+                            : 'hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:border-purple-200 dark:hover:border-purple-800'
+                          }
             `}
-                  >
-                    <span className="flex items-center gap-2">
-                      Recommendations
-                      <motion.div
-                        animate={activeSection === 'recommendations' ? {
-                          scale: [1, 1.05, 1],
-                          transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
-                        } : { scale: 1 }}
                       >
-                        <Chip
-                          size="sm"
-                          color="secondary"
-                          variant={activeSection === 'recommendations' ? 'solid' : 'flat'}
-                          className={`
+                        <span className="flex items-center gap-2">
+                          Recommendations
+                          <motion.div
+                            animate={activeSection === 'recommendations' ? {
+                              scale: [1, 1.05, 1],
+                              transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                            } : { scale: 1 }}
+                          >
+                            <Chip
+                              size="sm"
+                              color="secondary"
+                              variant={activeSection === 'recommendations' ? 'solid' : 'flat'}
+                              className={`
                     ml-2 transition-all duration-300
                     ${activeSection === 'recommendations'
-                              ? 'bg-white/20 text-white border-white/30'
-                              : ''
-                            }
+                                  ? 'bg-white/20 text-white border-white/30'
+                                  : ''
+                                }
                   `}
-                        >
-                          <motion.span
-                            className="text-xs font-semibold"
-                            animate={activeSection === 'recommendations' ? {
-                              opacity: [1, 0.7, 1],
-                              transition: { duration: 1, repeat: Infinity, ease: "easeInOut" }
-                            } : { opacity: 1 }}
-                          >
-                            New
-                          </motion.span>
-                        </Chip>
-                      </motion.div>
-                    </span>
-                  </Button>
-                </motion.div>
-              </div>
+                            >
+                              <motion.span
+                                className="text-xs font-semibold"
+                                animate={activeSection === 'recommendations' ? {
+                                  opacity: [1, 0.7, 1],
+                                  transition: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+                                } : { opacity: 1 }}
+                              >
+                                New
+                              </motion.span>
+                            </Chip>
+                          </motion.div>
+                        </span>
+                      </Button>
+                    </motion.div>
+                  </div>
 
-              {/* Progress Indicator */}
-              <div className="hidden sm:block mt-4 h-0.5 bg-gray-100 dark:bg-gray-800 rounded-full">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
-                  initial={{ width: 0 }}
-                  animate={{
-                    width: "33.33%",
-                    x: activeSection === 'contests' ? "0%" :
-                      activeSection === 'problems' ? "100%" : "200%"
-                  }}
-                  transition={{
-                    duration: 0.4,
-                    ease: [0.4, 0, 0.2, 1],
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30
-                  }}
-                />
-              </div>
-            </CardBody>
-          </Card>
-        </motion.div>
+                  {/* Progress Indicator */}
+                  <div className="hidden sm:block mt-4 h-0.5 bg-gray-100 dark:bg-gray-800 rounded-full">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: "33.33%",
+                        x: activeSection === 'contests' ? "0%" :
+                          activeSection === 'problems' ? "100%" : "200%"
+                      }}
+                      transition={{
+                        duration: 0.4,
+                        ease: [0.4, 0, 0.2, 1],
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30
+                      }}
+                    />
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
 
-        {/* Dynamic Content Sections */}
-        <motion.div
-          key={activeSection}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          {activeSection === 'contests' && (
-            <>
-              {/* Filter Buttons */}
-              <div className="mb-6">
-                <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
-                  <CardBody className="p-4">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="w-5 h-5 text-primary dark:text-primary-dark" />
-                        <h2 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
-                          Contest History
-                        </h2>
-                      </div>
-                      <div className="flex gap-2">
-                        {[30, 90, 365].map((days) => (
-                          <Button
-                            key={days}
-                            size="sm"
-                            variant={selectedDays === days ? 'solid' : 'light'}
-                            color={selectedDays === days ? 'primary' : 'default'}
-                            onClick={() => setSelectedDays(days as 30 | 90 | 365)}
-                          >
-                            {days} days
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </div>
-              <ContestHistorySection studentId={studentId!} selectedDays={selectedDays} />
-            </>
-          )}
-          {activeSection === 'problems' && (
-            <ProblemSolvingSection studentId={studentId!} />
-          )}
-          {activeSection === 'recommendations' && (
-            <RecommendedProblemsSection studentId={studentId!} />
-          )}
-        </motion.div>
+            {/* Dynamic Content Sections */}
+            <motion.div
+              key={activeSection}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {activeSection === 'contests' && (
+                <>
+                  {/* Filter Buttons */}
+                  <div className="mb-6">
+                    <Card className="border border-secondary/10 dark:border-secondary-dark/10 bg-surface dark:bg-surface-dark">
+                      <CardBody className="p-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Trophy className="w-5 h-5 text-primary dark:text-primary-dark" />
+                            <h2 className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
+                              Contest History
+                            </h2>
+                          </div>
+                          <div className="flex gap-2">
+                            {[30, 90, 365].map((days) => (
+                              <Button
+                                key={days}
+                                size="sm"
+                                variant={selectedDays === days ? 'solid' : 'light'}
+                                color={selectedDays === days ? 'primary' : 'default'}
+                                onClick={() => setSelectedDays(days as 30 | 90 | 365)}
+                              >
+                                {days} days
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
+                  <ContestHistorySection studentId={studentId!} selectedDays={selectedDays} />
+                </>
+              )}
+              {activeSection === 'problems' && (
+                <ProblemSolvingSection studentId={studentId!} />
+              )}
+              {activeSection === 'recommendations' && (
+                <RecommendedProblemsSection studentId={studentId!} />
+              )}
+            </motion.div>
+          </>
+        )}
       </div>
     </div>
   );

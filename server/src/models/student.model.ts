@@ -16,7 +16,7 @@ export interface IStudent extends Document {
   lastSubmissionTime?: Date;
   lastContestTime: Date;
   lastDataSync: Date;
-  syncStatus: string;
+  syncStatus: 'PENDING'| 'SYNCING' | 'SUCCEEDED' | 'FAILED';
   lastInactivityEmailSent?: Date;
   inactivityEmailCount: number;
   autoEmailEnabled: boolean;
@@ -76,6 +76,8 @@ const StudentSchema: Schema = new Schema(
     },
     syncStatus: {
       type: String,
+      enum: ['PENDING', 'SYNCING', 'SUCCEEDED', 'FAILED'],
+      default: 'PENDING'
     },
     lastInactivityEmailSent: {
       type: Date,
@@ -92,6 +94,11 @@ const StudentSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+StudentSchema.index({ codeforcesHandle: 1 }, { unique: true });
+StudentSchema.index({ email: 1 }, { unique: true });
+StudentSchema.index({ name: 'text', email: 'text', codeforcesHandle: 'text' });
+StudentSchema.index({ rating: -1 });
 
 StudentSchema.pre('findOneAndDelete', async function (next) {
   const student: any = await this.model.findOne(this.getFilter());

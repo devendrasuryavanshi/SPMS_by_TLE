@@ -2,18 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardBody, Progress } from '@nextui-org/react';
 import { TrendingUp, Star, Trophy, Target, Activity, Calendar } from 'lucide-react';
-
-interface Student {
-  rating: number;
-  maxRating: number;
-  rank: string;
-  lastSubmissionTime: string;
-  lastContestTime: string;
-  lastDataSync: string;
-}
+import { SyncedStudent } from '../../hooks/useStudentSync';
 
 interface ProfileStatsProps {
-  student: Student;
+  student: SyncedStudent;
 }
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ student }) => {
@@ -32,9 +24,25 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ student }) => {
     visible: { opacity: 1, y: 0 }
   };
 
+  const getStatValue = (
+    value: string | number | undefined, 
+    formatter: (val: string) => string = (val) => val, 
+    defaultValue: string = 'N/A'
+  ): string => {
+    if (student.syncStatus !== 'SUCCEEDED') {
+      return 'Syncing...';
+    }
+    if (!value) {
+      return defaultValue;
+    }
+    return formatter(String(value));
+  };
+
   const getRatingProgress = () => {
+    if (student.rating === 0) return { progress: 0, nextMilestone: 800 };
     const nextMilestone = Math.ceil(student.rating / 200) * 200;
-    const prevMilestone = Math.floor(student.rating / 200) * 200;
+    const prevMilestone = Math.floor((student.rating - 1) / 200) * 200;
+    if (nextMilestone === prevMilestone) return { progress: 100, nextMilestone };
     const progress = ((student.rating - prevMilestone) / (nextMilestone - prevMilestone)) * 100;
     return { progress, nextMilestone };
   };
@@ -42,6 +50,9 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ student }) => {
   const { progress, nextMilestone } = getRatingProgress();
 
   const getActivityStatus = () => {
+    if (student.syncStatus !== 'SUCCEEDED') return { status: 'Calculating...', color: 'default' };
+    if (!student.lastSubmissionTime) return { status: 'Unknown', color: 'default' };
+    
     const lastActivity = new Date(student.lastSubmissionTime);
     const now = new Date();
     const daysSince = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
@@ -53,12 +64,12 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ student }) => {
   };
 
   const activityStatus = getActivityStatus();
-
+  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: '2-digit'
     });
   };
 
@@ -102,13 +113,13 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ student }) => {
       label: 'Last Contest',
       icon: <Trophy className="w-5 h-5 text-accent dark:text-accent-dark" />,
       bg: 'bg-accent/10 dark:bg-accent-dark/10',
-      value: student.lastContestTime ? formatDate(student.lastContestTime) : 'No contests'
+      value: getStatValue(student.lastContestTime, formatDate, 'No Contests')
     },
     {
       label: 'Last Sync',
       icon: <Calendar className="w-5 h-5 text-success" />,
       bg: 'bg-success/10',
-      value: formatDate(student.lastDataSync)
+      value: getStatValue(student.lastDataSync, formatDate)
     }
   ];
 

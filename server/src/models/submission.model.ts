@@ -72,4 +72,9 @@ const SubmissionSchema: Schema = new Schema(
   }
 );
 
+SubmissionSchema.index({ studentId: 1, submissionTime: -1 });
+SubmissionSchema.index({ studentId: 1, submissionId: 1 }, { unique: true });
+SubmissionSchema.index({ studentId: 1, tags: 1 });
+SubmissionSchema.index({ studentId: 1, problemId: 1 });
+
 export default mongoose.model<ISubmission>('Submission', SubmissionSchema);

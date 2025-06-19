@@ -64,4 +64,7 @@ const ContestHistorySchema: Schema = new Schema(
   }
 );
 
+ContestHistorySchema.index({ studentId: 1, contestTime: -1 });
+ContestHistorySchema.index({ studentId: 1, contestId: 1 }, { unique: true });
+
 export default mongoose.model<IContestHistory>('ContestHistory', ContestHistorySchema);

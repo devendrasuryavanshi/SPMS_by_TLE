@@ -1,103 +1,130 @@
 import mongoose from 'mongoose';
 import Submission from '../models/submission.model';
 import RecommendedProblem from '../models/recommendedProblem.model';
-import axios from 'axios';
-
-interface CFProblem {
-  contestId: number;
-  index: string;
-  name: string;
-  rating: number;
-  tags: string[];
-}
+import Problem from '../models/problem.model';
+import logger from '../utils/logger.utils';
 
 class RecommendationService {
-  private static problemCache: CFProblem[] | null = null;// cache for problem set
+  private static readonly RECOMMENDATION_DATA_AGE_DAYS = 365;
 
-  // get problem set from codeforces api
-  private static async getProblemSet(): Promise<CFProblem[] | null> {
-    if (this.problemCache) return this.problemCache;
-    const res = await axios.get('https://codeforces.com/api/problemset.problems');
-    const data = await res.data;
-    this.problemCache = data.result.problems.filter((p: any) => p.rating && p.tags);
-    return this.problemCache;
-  }
-
-  // get weak tags for a student
   private static async getWeakTags(studentId: mongoose.Types.ObjectId): Promise<string[]> {
-    const subs = await Submission.find({ studentId }).select('tags verdict').lean();// get submissions with tags and verdict
-    const stats: Record<string, { ok: number; fail: number }> = {};
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - this.RECOMMENDATION_DATA_AGE_DAYS);
 
-    // count ok and fail for each tag
-    subs.forEach(s => {
-      s.tags?.forEach(tag => {
-        stats[tag] ||= { ok: 0, fail: 0 };
-        s.verdict === 'OK' ? stats[tag].ok++ : stats[tag].fail++;
-      });
-    });
+    const tagStats = await Submission.aggregate([
+      // 1. Filter to the specific student and the last year of submissions
+      { $match: { studentId, submissionTime: { $gte: cutoffDate } } },
+      // 2. Deconstruct the tags array into separate documents
+      { $unwind: '$tags' },
+      // 3. Group by tag and count solved vs. failed attempts
+      {
+        $group: {
+          _id: '$tags',
+          okCount: { $sum: { $cond: [{ $eq: ['$verdict', 'OK'] }, 1, 0] } },
+          failCount: { $sum: { $cond: [{ $ne: ['$verdict', 'OK'] }, 1, 0] } }
+        }
+      },
+      // 4. Filter for tags where failures are greater than successes
+      { $match: { $expr: { $gt: ['$failCount', '$okCount'] } } },
+      // 5. Sort by the number of failures to find the weakest tags
+      { $sort: { failCount: -1 } },
+      // 6. to the top 5 weakest tags
+      { $limit: 5 },
+      // 7. to get just the tag name
+      { $project: { _id: 0, tag: '$_id' } }
+    ]);
 
-    // sort by fail count
-    return Object.entries(stats)
-      .filter(([, v]) => v.fail > v.ok)
-      .sort(([, a], [, b]) => b.fail - a.fail)
-      .slice(0, 5)
-      .map(([tag]) => tag);
+    return tagStats.map(stat => stat.tag);
   }
 
-  // generate recommendations after sync for student
-  static async generateRecommendationsPostSync(submissions: any[], studentId: mongoose.Types.ObjectId, currentRating: number): Promise<void> {
-    const problemSet = await this.getProblemSet();
-    if (!problemSet) return;
-    const weakTags = await this.getWeakTags(studentId);// student's weak tags
+  static async generateRecommendationsPostSync(
+    _newSubmissions: any[],
+    studentId: mongoose.Types.ObjectId,
+    currentRating: number
+  ): Promise<void> {
+    const weakTags = await this.getWeakTags(studentId);
 
-    // filter out solved problems
-    const solved = new Set(
-      submissions.filter(s => s.verdict === 'OK')
-        .map(s => `${s.problem.contestId}-${s.problem.index}`)
-    );
-
-    // attempted problems
-    const attempted = new Set(
-      submissions.map(s => `${s.problem.contestId}-${s.problem.index}`)
-    );
-
-    const candidates: CFProblem[] = [];
-    for (const p of problemSet) {
-      const key = `${p.contestId}-${p.index}`;
-      if (solved.has(key)) continue;// is already solved then skip
-
-      // if problem is attempted and has weak tags, add to candidates list 
-      if (Math.abs(currentRating - p.rating) <= 200 && p.tags.some(tag => weakTags.includes(tag))) {
-        candidates.push(p);
-      }
-      if (candidates.length >= 100) break;// limit to 100 candidates
+    if (weakTags.length === 0) {
+      logger.info(`No weak tags found for student ${studentId}. Skipping recommendation.`);
+      return;
     }
 
-    // sort by score
+    logger.info(`Found weak tags for student ${studentId}: ${weakTags.join(', ')}. Finding candidates via database aggregation...`);
+
+    const minRating = currentRating - 200 < 3500 ? currentRating - 200 : 3400;
+    const maxRating = currentRating + 200 < 3500 ? currentRating + 200 : 3400;
+
+
+    // problems that match criteria AND that the user has NOT submitted
+    const candidates = await Problem.aggregate([
+      // Stage 1: Fast filtering using indexes. Drastically reduce the number of documents
+      {
+        $match: {
+          tags: { $in: weakTags },
+          rating: { $gte: minRating, $lte: maxRating },
+        },
+      },
+      // Stage 2: JOIN with the submissions collection to find problems the user has NOT attempted
+      {
+        $lookup: {
+          from: 'submissions', // name of the submissions collection
+          let: { problem_id: '$problemId' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$problemId', '$$problem_id'] },
+                    { $eq: ['$studentId', studentId] },
+                  ],
+                },
+              },
+            },
+            { $limit: 1 }
+          ],
+          as: 'studentSubmissions',
+        },
+      },
+      // Stage 3: Filter out problems that have submissions
+      {
+        $match: {
+          studentSubmissions: { $eq: [] },
+        },
+      },
+      // Stage 4: random sample
+      { $sample: { size: 200 } },
+      {
+        $project: {
+          studentSubmissions: 0,
+        }
+      }
+    ]);
+
+    if (candidates.length === 0) {
+      logger.info(`No suitable new problems found for student ${studentId}.`);
+      return;
+    }
+
     candidates.sort((a, b) => {
-      const aScore =
-        a.tags.filter(t => weakTags.includes(t)).length * 10 -
-        Math.abs(currentRating - a.rating);
-      const bScore =
-        b.tags.filter(t => weakTags.includes(t)).length * 10 -
-        Math.abs(currentRating - b.rating);
+      const aScore = a.tags.filter((t: string) => weakTags.includes(t)).length * 10 - Math.abs(currentRating - a.rating);
+      const bScore = b.tags.filter((t: string) => weakTags.includes(t)).length * 10 - Math.abs(currentRating - b.rating);
       return bScore - aScore;
     });
 
-    // only adding top 10 candidates
     const top10 = candidates.slice(0, 10).map(p => ({
-      problemId: `${p.contestId}-${p.index}`,
+      problemId: p.problemId,
       problemName: p.name,
       problemIndex: p.index,
       problemRating: p.rating,
       tags: p.tags,
     }));
 
-    if (top10.length) {
+    if (top10.length > 0) {
+      logger.info(`Generated ${top10.length} recommendations for student ${studentId}.`);
       await RecommendedProblem.findOneAndUpdate(
         { studentId },
-        { studentId, problems: top10 },
-        { upsert: true }
+        { studentId, problems: top10, lastUpdated: new Date() },
+        { upsert: true, new: true }
       );
     }
   }

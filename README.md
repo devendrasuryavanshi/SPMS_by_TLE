@@ -548,6 +548,9 @@ const logger = winston.createLogger({
 
 ## Screenshots
 
+### Home Page
+![Home Page](./assets/screenshots/20250619_22411593.png)
+
 ### Student Management
 ![Student Table](./assets/screenshots/20250619_00312789.png)
 

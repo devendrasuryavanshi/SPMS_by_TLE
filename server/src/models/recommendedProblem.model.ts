@@ -48,6 +48,8 @@ const RecommendedProblemSchema: Schema = new Schema(
   {
     timestamps: true,
   }
-)
+);
+
+RecommendedProblemSchema.index({ studentId: 1 }, { unique: true });
 
 export default mongoose.model<IRecommendedProblem>('RecommendedProblem', RecommendedProblemSchema);

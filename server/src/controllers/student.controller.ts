@@ -45,7 +45,7 @@ export const create = async (req: Request, res: Response) => {
       rank: codeforcesUser?.rank || '',
       country: codeforcesUser?.country || '',
       lastSubmissionTime: new Date('2005-01-01T00:00:00.000Z'),// default value, which is older then codeforces launch date to ensure that we sync all the submissions
-      lastDataSync: new Date(),
+      lastDataSync: new Date('2005-01-01T00:00:00.000Z'),
       inactivityEmailCount: 0,
       autoEmailEnabled: true,
       createdAt: new Date(),
