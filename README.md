@@ -199,18 +199,6 @@ The application will be available at:
 | `JWT_EXPIRE` | JWT expiration time | 7d |
 | `SMTP_HOST` | Email server host | smtp.gmail.com |
 | `SMTP_PORT` | Email server port | 587 |
-| `DEFAULT_SYNC_SCHEDULE` | Default cron schedule | 0 2 * * * |
-
-### Cron Job Configuration
-
-The system supports configurable cron schedules for data synchronization:
-
-```javascript
-// Examples of cron schedules
-"0 2 * * *"     // Daily at 2:00 AM
-"0 */6 * * *"   // Every 6 hours
-"0 0 * * 0"     // Weekly on Sunday at midnight
-```
 
 ## API Documentation
 
