@@ -27,10 +27,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-if (process.env.NODE_ENV === 'production') {
-  const url = process.env.SERVER_URL || '';
-  keepAlive(url);
-}
+const url = process.env.SERVER_URL || '';
+keepAlive(url);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, World!');
