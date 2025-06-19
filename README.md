@@ -6,7 +6,7 @@ A comprehensive web application for tracking and managing competitive programmin
 
 **Live Application:** [https://spms-by-tle.vercel.app](https://spms-by-tle.vercel.app)
 
-**Video Demo:** [Watch Full Demo](https://youtu.be/demo-video-link)
+**Video Demo:** [Watch Full Demo](https://youtu.be/ySoGiyrKUp4)
 
 ## Table of Contents
 
@@ -566,6 +566,9 @@ const logger = winston.createLogger({
 
 ### System Settings
 ![System Settings](./assets/screenshots/20250619_00365692.png)
+
+### Email Reminder
+![Email Reminder](./assets/screenshots/image.png)
 
 ## License
 
