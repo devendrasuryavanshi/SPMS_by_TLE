@@ -65,8 +65,8 @@ class EmailService {
           name: 'SPMS - Student Progress Management System',
           address: process.env.SMTP_USER || 'noreply@spms.com'
         },
-        // to: data.studentEmail, // 
-        to: 'hrithiksuryavanshee@gmail.com', // sending to my email for testing
+        to: data.studentEmail, // 
+        // to: 'hrithiksuryavanshee@gmail.com', // sending to my email for testing
         subject: '🎯 Time to Get Back to Coding - Your Progress Awaits!',
         html: emailHtml,
         text: emailText,
